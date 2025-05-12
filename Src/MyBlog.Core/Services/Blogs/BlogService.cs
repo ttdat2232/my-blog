@@ -1,0 +1,62 @@
+using MyBlog.Core.Aggregates.Blogs;
+using MyBlog.Core.Aggregates.Categories;
+using MyBlog.Core.Aggregates.Users;
+using MyBlog.Core.Models;
+using MyBlog.Core.Primitives;
+using MyBlog.Core.Repositories;
+
+namespace MyBlog.Core.Services.Blogs;
+
+public class BlogService(IUnitOfWork _unitOfWork) : IBlogService
+{
+    public async Task<Result<BlogAggregate>> CreateBlogAsync(
+        string title,
+        string content,
+        BaseId authorId,
+        BaseId categoryId,
+        bool isDraft,
+        DateTime? publishDate,
+        CancellationToken cancellationToken
+    )
+    {
+        var _userRepository = _unitOfWork.Repository<UserAggregate, BaseId>();
+        var _categoryRepository = _unitOfWork.Repository<CategoryAggregate, BaseId>();
+
+        if (!await _userRepository.IsExistedAsync(authorId, cancellationToken))
+            return Result<BlogAggregate>.Failure(BlogErrors.AuthorNotExisted);
+
+        if (!await _categoryRepository.IsExistedAsync(categoryId, cancellationToken))
+            return Result<BlogAggregate>.Failure(BlogErrors.CategoryNotExisted);
+
+        var blogResult = BlogAggregate.Create(
+            title,
+            content,
+            authorId,
+            categoryId,
+            isDraft,
+            publishDate
+        );
+
+        return blogResult;
+    }
+
+    public async Task<Result<bool>> ValidateUpdateOperationAsync(
+        BlogAggregate blog,
+        BaseId requestUserId,
+        BaseId? newCategoryId,
+        CancellationToken cancellationToken
+    )
+    {
+        if (blog.AuthorId != requestUserId)
+            return Result<bool>.Failure(BlogErrors.NotBlogOwner);
+
+        if (
+            newCategoryId?.Value != null
+            && !await _unitOfWork
+                .Repository<CategoryAggregate, BaseId>()
+                .IsExistedAsync(newCategoryId, cancellationToken)
+        )
+            return Result<bool>.Failure(BlogErrors.CategoryNotExisted);
+        return Result<bool>.Success(true);
+    }
+}

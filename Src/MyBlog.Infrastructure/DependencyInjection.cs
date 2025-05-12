@@ -1,0 +1,53 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using MyBlog.Core.Repositories;
+using MyBlog.Infrastructure.Configurations;
+using MyBlog.Infrastructure.Data;
+using Serilog;
+
+namespace MyBlog.Infrastructure;
+
+public static class DependencyInjection
+{
+    public static IServiceCollection AddDatabase(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
+    {
+        var databaseConfig = new DatabaseConfiguration();
+        configuration.GetSection("Database").Bind(databaseConfig);
+        services.Configure<DatabaseConfiguration>(config =>
+        {
+            config.TimeOutInMs = databaseConfig.TimeOutInMs;
+        });
+
+        var connectionString = configuration.GetConnectionString("Default") ?? "";
+        services.AddDbContext<MyBlogContext>(optionsBuilder =>
+        {
+            optionsBuilder.ConfigureWarnings(warnings =>
+                warnings.Ignore(RelationalEventId.PendingModelChangesWarning)
+            );
+            optionsBuilder.UseNpgsql(
+                connectionString,
+                databaseOpts =>
+                {
+                    databaseOpts.EnableRetryOnFailure();
+                    databaseOpts.CommandTimeout(databaseConfig.TimeOutInMs);
+                }
+            );
+            optionsBuilder.LogTo(
+                Log.Information,
+                Microsoft.Extensions.Logging.LogLevel.Information
+            );
+#if DEBUG
+            optionsBuilder.EnableSensitiveDataLogging();
+#endif
+        });
+
+        services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));
+
+        return services;
+    }
+}
