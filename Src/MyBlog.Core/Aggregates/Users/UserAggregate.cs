@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using MyBlog.Core.Aggregates.Users.Events;
 using MyBlog.Core.Primitives;
 
 namespace MyBlog.Core.Aggregates.Users;
@@ -117,6 +118,7 @@ public sealed class UserAggregate : AggregateRoot<UserId>
         Avatar = avatar;
         _followedBy = new List<Subscription>();
         _follows = new List<Subscription>();
+        AddDomainEvent(new UserCreatedEvent(this));
     }
 
     // EF Core require

@@ -15,6 +15,11 @@ public static class DependencyInjection
             .WriteTo.Console()
             .CreateLogger();
 
+        services.AddMediatR(config =>
+        {
+            config.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
+        });
+
         services.AddScoped<IBlogService, BlogService>();
         return services;
     }
