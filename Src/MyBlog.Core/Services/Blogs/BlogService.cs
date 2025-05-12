@@ -19,13 +19,18 @@ public class BlogService(IUnitOfWork _unitOfWork) : IBlogService
         CancellationToken cancellationToken
     )
     {
-        var _userRepository = _unitOfWork.Repository<UserAggregate, BaseId>();
-        var _categoryRepository = _unitOfWork.Repository<CategoryAggregate, BaseId>();
+        var _userRepository = _unitOfWork.Repository<UserAggregate, UserId>();
+        var _categoryRepository = _unitOfWork.Repository<CategoryAggregate, CategoryId>();
 
-        if (!await _userRepository.IsExistedAsync(authorId, cancellationToken))
+        if (!await _userRepository.IsExistedAsync(UserId.From(authorId), cancellationToken))
             return Result<BlogAggregate>.Failure(BlogErrors.AuthorNotExisted);
 
-        if (!await _categoryRepository.IsExistedAsync(categoryId, cancellationToken))
+        if (
+            !await _categoryRepository.IsExistedAsync(
+                CategoryId.From(categoryId),
+                cancellationToken
+            )
+        )
             return Result<BlogAggregate>.Failure(BlogErrors.CategoryNotExisted);
 
         var blogResult = BlogAggregate.Create(
@@ -53,8 +58,8 @@ public class BlogService(IUnitOfWork _unitOfWork) : IBlogService
         if (
             newCategoryId?.Value != null
             && !await _unitOfWork
-                .Repository<CategoryAggregate, BaseId>()
-                .IsExistedAsync(newCategoryId, cancellationToken)
+                .Repository<CategoryAggregate, CategoryId>()
+                .IsExistedAsync(CategoryId.From(newCategoryId.Value), cancellationToken)
         )
             return Result<bool>.Failure(BlogErrors.CategoryNotExisted);
         return Result<bool>.Success(true);

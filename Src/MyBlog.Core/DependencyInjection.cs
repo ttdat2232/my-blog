@@ -8,20 +8,12 @@ namespace MyBlog.Core;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddMyBlogCore(
-        this IServiceCollection services,
-        IConfiguration configuration
-    )
+    public static IServiceCollection AddMyBlogCore(this IServiceCollection services)
     {
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
             .WriteTo.Console()
             .CreateLogger();
-
-        services.AddMediatR(config =>
-        {
-            config.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly());
-        });
 
         services.AddScoped<IBlogService, BlogService>();
         return services;

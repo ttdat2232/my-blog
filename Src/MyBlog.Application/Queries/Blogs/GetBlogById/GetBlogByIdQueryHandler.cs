@@ -20,7 +20,7 @@ public class GetBlogByIdQueryHandler : IRequestHandler<GetBlogByIdQuery, Result<
     )
     {
         var blog = await _unitOfWork
-            .Repository<BlogAggregate>()
+            .Repository<BlogAggregate, BlogId>()
             .GetOneAsync(
                 b => b.Id == request.Id,
                 b => new BlogResponse(

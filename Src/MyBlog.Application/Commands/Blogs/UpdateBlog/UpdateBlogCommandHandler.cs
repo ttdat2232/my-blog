@@ -17,8 +17,8 @@ public class UpdateBlogCommandHandler(IUnitOfWork _unitOfWork, IBlogService _blo
     )
     {
         var blog = await _unitOfWork
-            .Repository<BlogAggregate>()
-            .FindById(request.Id, cancellationToken);
+            .Repository<BlogAggregate, BlogId>()
+            .FindById(BlogId.From(request.Id), cancellationToken);
 
         if (blog is null)
             return Result<bool>.Failure("Blog not found", 404);
@@ -35,7 +35,7 @@ public class UpdateBlogCommandHandler(IUnitOfWork _unitOfWork, IBlogService _blo
 
         blog.Update(request.Title, request.Content, request.Status);
 
-        await _unitOfWork.Repository<BlogAggregate>().UpdateAsync(blog, cancellationToken);
+        await _unitOfWork.Repository<BlogAggregate, BlogId>().UpdateAsync(blog, cancellationToken);
         await _unitOfWork.SaveAsync(cancellationToken);
 
         return Result<bool>.Success(true);

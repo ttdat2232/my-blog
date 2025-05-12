@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using MyBlog.Core.Primitives;
@@ -10,9 +9,7 @@ namespace MyBlog.Infrastructure.Data;
 public sealed class UnitOfWork : IUnitOfWork
 {
     private readonly MyBlogContext _context;
-    private readonly IServiceProvider _provider;
     private readonly Dictionary<(Type, Type), object> _repositories;
-    private readonly HashSet<IServiceScope> _scopes;
     private readonly Dictionary<string, IDbContextTransaction> _transactions;
     private bool _disposed;
 
@@ -21,8 +18,6 @@ public sealed class UnitOfWork : IUnitOfWork
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _repositories = new Dictionary<(Type, Type), object>();
         _transactions = new Dictionary<string, IDbContextTransaction>();
-        _scopes = new();
-        _provider = provider;
     }
 
     public async Task CommitAtTransactionAsync(
@@ -59,13 +54,8 @@ public sealed class UnitOfWork : IUnitOfWork
             transaction.Dispose();
         }
 
-        foreach (var scope in _scopes)
-        {
-            scope.Dispose();
-        }
-
-        _scopes.Clear();
         _transactions.Clear();
+        _repositories.Clear();
         _context.Dispose();
         _disposed = true;
     }
@@ -82,34 +72,30 @@ public sealed class UnitOfWork : IUnitOfWork
             await transaction.DisposeAsync();
         }
 
-        foreach (var scope in _scopes)
-        {
-            scope.Dispose();
-        }
-
         _transactions.Clear();
+        _repositories.Clear();
         await _context.DisposeAsync();
         _disposed = true;
     }
 
     public IRepository<T, TId> Repository<T, TId>()
-        where TId : notnull
+        where TId : BaseId
         where T : Entity<TId>
     {
         ThrowIfDisposed();
 
-        var entityType = typeof(T);
-        var keyType = typeof(TId);
-        if (!_repositories.ContainsKey((entityType, keyType)))
+        var key = (typeof(T), typeof(TId));
+        if (_repositories.TryGetValue(key, out var repository))
         {
-            var scope = _provider.CreateScope();
-            _scopes.Add(scope);
-            _repositories[(entityType, keyType)] = scope.ServiceProvider.GetRequiredService<
-                IRepository<T, TId>
-            >();
+            return (IRepository<T, TId>)repository;
         }
 
-        return (IRepository<T, TId>)_repositories[(entityType, keyType)];
+        var repositoryType = typeof(Repository<,>).MakeGenericType(typeof(T), typeof(TId));
+
+        var consturtor = repositoryType.GetConstructor([typeof(MyBlogContext)])!;
+
+        _repositories[key] = consturtor.Invoke([_context]);
+        return (IRepository<T, TId>)_repositories[key];
     }
 
     public async Task RollBackAtTransactionAsync(
@@ -136,10 +122,10 @@ public sealed class UnitOfWork : IUnitOfWork
         _transactions.Remove(transactionInformation.Id);
     }
 
-    public async Task SaveAsync(CancellationToken cancellationToken = default)
+    public async Task<bool> SaveAsync(CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-        await _context.SaveChangesAsync(cancellationToken);
+        return await _context.SaveChangesAsync(cancellationToken) > 0;
     }
 
     public async Task<TransactionInformation> StartTransactionAsync(

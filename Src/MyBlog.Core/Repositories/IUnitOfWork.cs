@@ -14,7 +14,7 @@ public interface IUnitOfWork : IDisposable, IAsyncDisposable
     /// <typeparam name="T">The entity type</typeparam>
     /// <returns>The repository instance</returns>
     IRepository<T, TId> Repository<T, TId>()
-        where TId : notnull
+        where TId : BaseId
         where T : Entity<TId>;
 
     /// <summary>
@@ -22,7 +22,7 @@ public interface IUnitOfWork : IDisposable, IAsyncDisposable
     /// </summary>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>A task representing the asynchronous operation</returns>
-    Task SaveAsync(CancellationToken cancellationToken = default);
+    Task<bool> SaveAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Starts a new transaction asynchronously

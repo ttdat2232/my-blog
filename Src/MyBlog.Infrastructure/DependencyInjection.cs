@@ -11,7 +11,7 @@ namespace MyBlog.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddDatabase(
+    public static IServiceCollection AddMyBlogDatabase(
         this IServiceCollection services,
         IConfiguration configuration
     )
@@ -47,6 +47,7 @@ public static class DependencyInjection
         });
 
         services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;
     }

@@ -31,7 +31,7 @@ public class CreateBlogCommandHandler(IBlogService _blogService, IUnitOfWork _un
             return Result<Guid>.Failure(blogResult.Error);
 
         var blog = blogResult.Data;
-        await _unitOfWork.Repository<BlogAggregate>().AddAsync(blog, cancellationToken);
+        await _unitOfWork.Repository<BlogAggregate, BlogId>().AddAsync(blog, cancellationToken);
         await _unitOfWork.SaveAsync(cancellationToken);
 
         return Result<Guid>.Success(blog.Id);

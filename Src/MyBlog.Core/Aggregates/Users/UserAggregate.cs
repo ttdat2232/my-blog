@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using MyBlog.Core.Primitives;
 
 namespace MyBlog.Core.Aggregates.Users;
@@ -38,7 +40,64 @@ public sealed class UserAggregate : AggregateRoot<UserId>
             email,
             avatar
         );
-        return new UserAggregate(UserId.New(), userName, email, password, avatar);
+        var hashedPassword = HashPassword(password);
+        return new UserAggregate(UserId.New(), userName, email, hashedPassword, avatar);
+    }
+
+    private static string HashPassword(string password)
+    {
+        // Generate a random salt
+        byte[] salt = new byte[16];
+        using (var rng = RandomNumberGenerator.Create())
+        {
+            rng.GetBytes(salt);
+        }
+
+        // Create hash
+        using var sha256 = SHA256.Create();
+        var passwordBytes = Encoding.UTF8.GetBytes(password);
+        var saltedPassword = new byte[passwordBytes.Length + salt.Length];
+        Buffer.BlockCopy(passwordBytes, 0, saltedPassword, 0, passwordBytes.Length);
+        Buffer.BlockCopy(salt, 0, saltedPassword, passwordBytes.Length, salt.Length);
+
+        var hashedBytes = sha256.ComputeHash(saltedPassword);
+
+        // Combine salt and hash
+        var hashWithSalt = new byte[hashedBytes.Length + salt.Length];
+        Buffer.BlockCopy(hashedBytes, 0, hashWithSalt, 0, hashedBytes.Length);
+        Buffer.BlockCopy(salt, 0, hashWithSalt, hashedBytes.Length, salt.Length);
+
+        return Convert.ToBase64String(hashWithSalt);
+    }
+
+    public bool ValidatePassword(string password)
+    {
+        try
+        {
+            // Extract salt from stored hash
+            byte[] hashWithSalt = Convert.FromBase64String(Password);
+            byte[] salt = new byte[16];
+            Buffer.BlockCopy(hashWithSalt, 32, salt, 0, 16);
+
+            // Hash the input password with the same salt
+            using var sha256 = SHA256.Create();
+            var passwordBytes = Encoding.UTF8.GetBytes(password);
+            var saltedPassword = new byte[passwordBytes.Length + salt.Length];
+            Buffer.BlockCopy(passwordBytes, 0, saltedPassword, 0, passwordBytes.Length);
+            Buffer.BlockCopy(salt, 0, saltedPassword, passwordBytes.Length, salt.Length);
+
+            var hashedBytes = sha256.ComputeHash(saltedPassword);
+
+            // Compare the hashes
+            byte[] storedHash = new byte[32];
+            Buffer.BlockCopy(hashWithSalt, 0, storedHash, 0, 32);
+
+            return storedHash.SequenceEqual(hashedBytes);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private UserAggregate(

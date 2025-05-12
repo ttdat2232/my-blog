@@ -32,7 +32,7 @@ public abstract class Entity<T> : AutditableEntity, IEquatable<Entity<T>>
         _domainEvents.Clear();
     }
 
-    public static bool operator ==(Entity<T> left, Entity<T> right)
+    public static bool operator ==(Entity<T>? left, Entity<T>? right)
     {
         if (left is null && right is null)
             return true;
@@ -41,7 +41,7 @@ public abstract class Entity<T> : AutditableEntity, IEquatable<Entity<T>>
         return left.Equals(right);
     }
 
-    public static bool operator !=(Entity<T> left, Entity<T> right)
+    public static bool operator !=(Entity<T>? left, Entity<T>? right)
     {
         return !(left == right);
     }
