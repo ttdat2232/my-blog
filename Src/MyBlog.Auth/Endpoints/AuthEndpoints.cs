@@ -3,11 +3,10 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using MyBlog.Application.Commands.Users.Login;
 using MyBlog.Application.Commands.Users.Register;
-using MyBlog.Core.Models;
-using MyBlog.WebApi.Extensions;
-using MyBlog.WebApi.Models.Auth;
+using MyBlog.Auth.Extensions;
+using MyBlog.Auth.Models.Auth;
 
-namespace MyBlog.WebApi.Enpoints;
+namespace MyBlog.Auth.Endpoints;
 
 public class AuthEndpoints : ICarterModule
 {

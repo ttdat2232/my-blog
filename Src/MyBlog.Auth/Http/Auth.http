@@ -1,4 +1,4 @@
-@host = http://localhost:5005
+@host = http://localhost:5295
 
 ### Login
 POST {{host}}/api/auth/login

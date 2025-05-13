@@ -1,0 +1,53 @@
+services:
+  my-blog-api:
+    build:
+      context: .
+      dockerfile: ./Dockerfiles/Auth.Dockerfile
+    ports:
+      - "5000:80"
+      - "5001:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Default=Host=db;Database=myblog;Username=postgres;Password=postgres
+    depends_on:
+      - my-blog-db
+    container_name: my-blog-webapi
+    networks:
+      - myblog-network
+
+  my-blog-auth:
+    build:
+      context: .
+      dockerfile: ./Dockerfiles/Auth.Dockerfile
+    ports:
+      - "5000:81"
+      - "5002:444"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Default=Host=db;Database=myblog;Username=postgres;Password=postgres
+    depends_on:
+      - my-blog-db
+    container_name: my-blog-auth
+    networks:
+      - myblog-network
+
+  my-blog-db:
+    image: postgres:17.2-alpine3.21
+    environment:
+      - POSTGRES_DB=myblog
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - myblog-network
+    container_name: my-blog-db
+
+volumes:
+  postgres_data:
+
+networks:
+  myblog-network:
+    driver: bridge
