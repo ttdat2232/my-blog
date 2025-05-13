@@ -45,8 +45,19 @@ services:
       - myblog-network
     container_name: my-blog-db
 
+  redis:
+    image: redis:7.2-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/var/lib/redis/data
+    container_name: my-blog-redis
+    networks:
+      - myblog-network
+
 volumes:
   postgres_data:
+  redis_data:
 
 networks:
   myblog-network:
