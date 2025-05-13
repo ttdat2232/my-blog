@@ -31,6 +31,8 @@ A modern blog application built with .NET 9, implementing clean architecture pri
 
 ## Getting Started
 
+### Running Locally
+
 1. Clone the repository
 
 ```sh
@@ -50,6 +52,33 @@ dotnet ef database update -p ./Src/MyBlog.Infrastructure -s ./Src/MyBlog.WebApi
 
 ```sh
 dotnet run --project ./Src/MyBlog.WebApi
+```
+
+### Running with Docker
+
+1. Clone the repository and navigate to the project directory
+
+```sh
+git clone https://github.com/ttdat2232/my-blog.git
+cd ./my-blog
+```
+
+2. Build and run using Docker Compose
+
+```sh
+docker-compose up --build
+```
+
+This will start:
+
+- The MyBlog API application
+- The MyBlog Auth application
+- PostgreSQL database
+
+To stop the containers:
+
+```sh
+docker-compose down
 ```
 
 ## Project Features
@@ -72,25 +101,3 @@ The solution follows Clean Architecture principles:
   - Jwt - Authentication services
 - Presentation
   - WebApi - API endpoints and configuration
-
-## API Documentation
-
-### Authentication Endpoints
-
-#### POST /api/auth/login
-
-Login to the application
-
-```json
-Request:
-{
-    "usernameOrEmail": "string",
-    "password": "string"
-}
-
-Response:
-{
-    "token": "string",
-    "expiresIn": "number"
-}
-```
