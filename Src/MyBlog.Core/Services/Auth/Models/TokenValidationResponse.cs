@@ -6,4 +6,5 @@ public record TokenValidationResponse(
     string Email,
     List<string> Roles,
     Dictionary<string, string> Claims,
-    DateTime ExpirationTime);
+    DateTime ExpirationTime
+);

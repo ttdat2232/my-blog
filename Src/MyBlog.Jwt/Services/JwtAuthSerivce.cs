@@ -56,7 +56,6 @@ public class JwtAuthService : IAuthService
             var accessToken = new JwtSecurityTokenHandler().WriteToken(token);
             var refreshToken = GenerateRefreshToken();
 
-            // Store refresh token
             await _tokenRepository.StoreRefreshTokenAsync(userId, refreshToken);
 
             return Result<TokenResponse>.Success(
@@ -78,7 +77,6 @@ public class JwtAuthService : IAuthService
             if (storedToken == null)
                 return Result<TokenResponse>.Failure(new Error("Invalid refresh token", 400));
 
-            // Generate new tokens
             return await GenerateTokenAsync(
                 storedToken.UserId,
                 storedToken.Username,
@@ -92,14 +90,24 @@ public class JwtAuthService : IAuthService
         }
     }
 
-    public async Task<bool> ValidateTokenAsync(string token)
+    public async Task<bool> ValidateTokenAsync(
+        string token,
+        Action<ValidationOption>? config = null
+    )
     {
-        var result = await ValidateAndDecodeTokenAsync(token);
+        var result = await ValidateAndDecodeTokenAsync(token, config);
         return result.IsSuccess;
     }
 
-    public async Task<Result<TokenValidationResponse>> ValidateAndDecodeTokenAsync(string token)
+    public async Task<Result<TokenValidationResponse>> ValidateAndDecodeTokenAsync(
+        string token,
+        Action<ValidationOption>? config = null
+    )
     {
+        var opts = ValidationOption.Default;
+        if (config != null)
+            config(opts);
+
         try
         {
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -113,7 +121,7 @@ public class JwtAuthService : IAuthService
                 ValidIssuer = _jwtSettings.Issuer,
                 ValidateAudience = true,
                 ValidAudience = _jwtSettings.Audience,
-                ValidateLifetime = true,
+                ValidateLifetime = opts.IsValidateLifeTime,
                 ClockSkew = TimeSpan.Zero,
             };
 

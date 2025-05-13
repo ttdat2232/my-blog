@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Options;
 using MyBlog.Core.Repositories;
+using MyBlog.Core.Services.Cache;
 using MyBlog.Jwt.Configurations;
 using MyBlog.Jwt.Models;
 
@@ -8,21 +9,26 @@ namespace MyBlog.Jwt.Repositories;
 
 public class TokenRepository : ITokenRepository
 {
-    private readonly ConcurrentDictionary<string, RefreshTokenInfo> _tokens = new();
+    private readonly ICacheService _cache;
+    private readonly ICacheKeyProvider _keyProvider;
     private readonly JwtSettings _jwtSettings;
 
-    public TokenRepository(IOptions<JwtSettings> jwtSettings)
+    public TokenRepository(
+        IOptions<JwtSettings> jwtSettings,
+        ICacheService cache,
+        ICacheKeyProvider keyProvider
+    )
     {
         _jwtSettings = jwtSettings.Value;
+        _cache = cache;
+        _keyProvider = keyProvider;
     }
 
     public async Task<StoredToken?> GetRefreshTokenAsync(string refreshToken)
     {
-        if (
-            _tokens.TryGetValue(refreshToken, out var tokenInfo)
-            && !tokenInfo.IsRevoked
-            && tokenInfo.ExpiresAt > DateTime.UtcNow
-        )
+        var tokenInfo = await _cache.GetAsync<RefreshTokenInfo>(refreshToken);
+
+        if (tokenInfo != null && !tokenInfo.IsRevoked && tokenInfo.ExpiresAt > DateTime.UtcNow)
         {
             return new StoredToken(
                 tokenInfo.UserId,
@@ -35,18 +41,28 @@ public class TokenRepository : ITokenRepository
         return null;
     }
 
-    public Task RevokeAllTokensAsync(Guid userId)
+    public async Task RevokeAllTokensAsync(Guid userId)
     {
-        var userTokens = _tokens.Where(t => t.Value.UserId == userId);
-        foreach (var token in userTokens)
+        string userTokensKey = _keyProvider.GenerateKey("UserTokens", userId.ToString());
+        var userTokenIds = await _cache.GetAsync<List<string>>(userTokensKey);
+
+        if (userTokenIds != null)
         {
-            if (_tokens.TryGetValue(token.Key, out var tokenInfo))
+            // Mark each token as revoked
+            foreach (var tokenId in userTokenIds)
             {
-                tokenInfo.IsRevoked = true;
+                var token = await _cache.GetAsync<RefreshTokenInfo>(tokenId);
+                if (token != null)
+                {
+                    token.IsRevoked = true;
+                    await _cache.SetAsync(
+                        tokenId,
+                        token,
+                        TimeSpan.FromDays(_jwtSettings.RefreshTokenExpiryDays)
+                    );
+                }
             }
         }
-
-        return Task.CompletedTask;
     }
 
     public Task RevokeUserTokensAsync(Guid userId)
@@ -54,7 +70,7 @@ public class TokenRepository : ITokenRepository
         return RevokeAllTokensAsync(userId);
     }
 
-    public Task StoreRefreshTokenAsync(Guid userId, string refreshToken)
+    public async Task StoreRefreshTokenAsync(Guid userId, string refreshToken)
     {
         var tokenInfo = new RefreshTokenInfo
         {
@@ -65,8 +81,34 @@ public class TokenRepository : ITokenRepository
             IsRevoked = false,
         };
 
-        _tokens.TryAdd(refreshToken, tokenInfo);
+        // Store the token with expiration
+        await _cache.SetAsync(
+            refreshToken,
+            tokenInfo,
+            TimeSpan.FromDays(_jwtSettings.RefreshTokenExpiryDays)
+        );
 
-        return Task.CompletedTask;
+        // Maintain a list of tokens per user (to enable revoking all tokens for a user)
+        string userTokensKey = _keyProvider.GenerateKey("UserTokens", userId.ToString());
+
+        // Get or create the list of user tokens
+        var userTokens = await _cache.GetOrCreateAsync(
+            userTokensKey,
+            async () => new List<string>(),
+            TimeSpan.FromDays(_jwtSettings.RefreshTokenExpiryDays * 2)
+        ); // Double the expiry to ensure it outlives tokens
+
+        // Add the new token to the list if not already present
+        if (!userTokens.Contains(refreshToken))
+        {
+            userTokens.Add(refreshToken);
+
+            // Update the token list in cache
+            await _cache.SetAsync(
+                userTokensKey,
+                userTokens,
+                TimeSpan.FromDays(_jwtSettings.RefreshTokenExpiryDays * 2)
+            );
+        }
     }
 }
