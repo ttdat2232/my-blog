@@ -2,18 +2,21 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using MyBlog.Infrastructure.Data;
+using MyBlog.Postgres.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace MyBlog.Infrastructure.Migrations
+namespace MyBlog.Postgres.Migrations
 {
     [DbContext(typeof(MyBlogContext))]
-    partial class MyBlogContextModelSnapshot : ModelSnapshot
+    [Migration("20250510103728_UpdateCommentsTable")]
+    partial class UpdateCommentsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -45,8 +48,7 @@ namespace MyBlog.Infrastructure.Migrations
                         .HasColumnName("deleted_at");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_deleted");
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsPublished")
                         .ValueGeneratedOnAdd()
@@ -140,8 +142,7 @@ namespace MyBlog.Infrastructure.Migrations
                         .HasColumnName("deleted_at");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_deleted");
+                        .HasColumnType("boolean");
 
                     b.Property<Guid?>("ParentCommentId")
                         .HasColumnType("uuid")
@@ -181,8 +182,7 @@ namespace MyBlog.Infrastructure.Migrations
                         .HasColumnName("deleted_at");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_deleted");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -200,109 +200,6 @@ namespace MyBlog.Infrastructure.Migrations
                         .HasName("id");
 
                     b.ToTable("tags", (string)null);
-                });
-
-            modelBuilder.Entity("MyBlog.Core.Aggregates.Users.Subscription", b =>
-                {
-                    b.Property<Guid>("FollowerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("follower_id");
-
-                    b.Property<Guid>("FollowedId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("followed_id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValue(new DateTime(2025, 5, 12, 12, 48, 45, 165, DateTimeKind.Utc).AddTicks(4385))
-                        .HasColumnName("created_at");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValue(new DateTime(2025, 5, 12, 12, 48, 45, 165, DateTimeKind.Utc).AddTicks(5087))
-                        .HasColumnName("updated_at");
-
-                    b.HasKey("FollowerId", "FollowedId");
-
-                    b.HasIndex("FollowedId");
-
-                    b.ToTable("subscriptions", (string)null);
-                });
-
-            modelBuilder.Entity("MyBlog.Core.Aggregates.Users.UserAggregate", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Avatar")
-                        .HasColumnType("text")
-                        .HasColumnName("avatar");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<long?>("CreatedBy")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)")
-                        .HasColumnName("email");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_deleted");
-
-                    b.Property<string>("NormalizeEmail")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)")
-                        .HasColumnName("normalize_email");
-
-                    b.Property<string>("NormalizeUserName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("normalize_user_name");
-
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("password");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<long?>("UpdatedBy")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("UserName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("user_name");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NormalizeEmail")
-                        .IsUnique()
-                        .HasDatabaseName("ix_users_normalize_email");
-
-                    b.HasIndex("NormalizeUserName")
-                        .IsUnique()
-                        .HasDatabaseName("ix_users_normalize_user_name");
-
-                    b.ToTable("users", (string)null);
                 });
 
             modelBuilder.Entity("MyBlog.Core.Aggregates.Blogs.BlogTag", b =>
@@ -337,21 +234,6 @@ namespace MyBlog.Infrastructure.Migrations
                         .HasForeignKey("ParentCommentId");
                 });
 
-            modelBuilder.Entity("MyBlog.Core.Aggregates.Users.Subscription", b =>
-                {
-                    b.HasOne("MyBlog.Core.Aggregates.Users.UserAggregate", null)
-                        .WithMany("FollowedBy")
-                        .HasForeignKey("FollowedId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("MyBlog.Core.Aggregates.Users.UserAggregate", null)
-                        .WithMany("Follows")
-                        .HasForeignKey("FollowerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("MyBlog.Core.Aggregates.Blogs.BlogAggregate", b =>
                 {
                     b.Navigation("Comments");
@@ -362,13 +244,6 @@ namespace MyBlog.Infrastructure.Migrations
             modelBuilder.Entity("MyBlog.Core.Aggregates.Blogs.Comment", b =>
                 {
                     b.Navigation("ChidrenComment");
-                });
-
-            modelBuilder.Entity("MyBlog.Core.Aggregates.Users.UserAggregate", b =>
-                {
-                    b.Navigation("FollowedBy");
-
-                    b.Navigation("Follows");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using MyBlog.Core.Primitives;
 
-namespace MyBlog.Infrastructure.Data.Interceptors;
+namespace MyBlog.Postgres.Data.Interceptors;
 
 public sealed class SoftDeleteInterceptor : SaveChangesInterceptor
 {

@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MyBlog.Infrastructure\MyBlog.Infrastructure.csproj" />
+    <ProjectReference Include="..\MyBlog.Postgres\MyBlog.Postgres.csproj" />
     <ProjectReference Include="..\MyBlog.Jwt\MyBlog.Jwt.csproj" />
     <ProjectReference Include="..\MyBlog.Application\MyBlog.Application.csproj" />
   </ItemGroup>

@@ -4,7 +4,7 @@ using MyBlog.Core.Aggregates.Blogs;
 using MyBlog.Core.Aggregates.Users;
 using MyBlog.Core.Primitives;
 
-namespace MyBlog.Infrastructure.Data.TableConfigurations;
+namespace MyBlog.Postgres.Data.TableConfigurations;
 
 public class CommentConfiguration : IEntityTypeConfiguration<Comment>
 {

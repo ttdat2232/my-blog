@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using MyBlog.Core.Aggregates.Blogs;
 using MyBlog.Core.Primitives;
 
-namespace MyBlog.Infrastructure.Data;
+namespace MyBlog.Postgres.Data;
 
 public class MyBlogContext : DbContext
 {

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using MyBlog.Core.Aggregates.Blogs;
 using MyBlog.Core.Primitives;
 
-namespace MyBlog.Infrastructure.Data.TableConfigurations;
+namespace MyBlog.Postgres.Data.TableConfigurations;
 
 public class BlogConfiguration : IEntityTypeConfiguration<BlogAggregate>
 {

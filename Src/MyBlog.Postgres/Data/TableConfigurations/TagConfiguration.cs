@@ -4,7 +4,7 @@ using MyBlog.Core.Aggregates.Categories;
 using MyBlog.Core.Aggregates.Tags;
 using MyBlog.Core.Primitives;
 
-namespace MyBlog.Infrastructure.Data.TableConfigurations;
+namespace MyBlog.Postgres.Data.TableConfigurations;
 
 public class TagConfiguration : IEntityTypeConfiguration<TagAggregate>
 {

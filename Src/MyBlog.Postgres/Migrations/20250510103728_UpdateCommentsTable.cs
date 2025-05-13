@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace MyBlog.Infrastructure.Migrations
+namespace MyBlog.Postgres.Migrations
 {
     /// <inheritdoc />
     public partial class UpdateCommentsTable : Migration
@@ -13,14 +13,16 @@ namespace MyBlog.Infrastructure.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_comments_parent_comment_id",
                 table: "comments",
-                column: "parent_comment_id");
+                column: "parent_comment_id"
+            );
 
             migrationBuilder.AddForeignKey(
                 name: "FK_comments_comments_parent_comment_id",
                 table: "comments",
                 column: "parent_comment_id",
                 principalTable: "comments",
-                principalColumn: "id");
+                principalColumn: "id"
+            );
         }
 
         /// <inheritdoc />
@@ -28,11 +30,10 @@ namespace MyBlog.Infrastructure.Migrations
         {
             migrationBuilder.DropForeignKey(
                 name: "FK_comments_comments_parent_comment_id",
-                table: "comments");
+                table: "comments"
+            );
 
-            migrationBuilder.DropIndex(
-                name: "IX_comments_parent_comment_id",
-                table: "comments");
+            migrationBuilder.DropIndex(name: "IX_comments_parent_comment_id", table: "comments");
         }
     }
 }

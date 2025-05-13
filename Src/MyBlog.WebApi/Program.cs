@@ -1,8 +1,8 @@
 using Carter;
 using MyBlog.Application;
 using MyBlog.Core;
-using MyBlog.Infrastructure;
 using MyBlog.Jwt;
+using MyBlog.Postgres;
 
 var builder = WebApplication.CreateBuilder(args);
 

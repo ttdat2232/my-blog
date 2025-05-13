@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using MyBlog.Core.Primitives;
 
-namespace MyBlog.Infrastructure.Data.Interceptors;
+namespace MyBlog.Postgres.Data.Interceptors;
 
 public class PublishDomainEventInterceptor(IPublisher _publisher) : SaveChangesInterceptor
 {

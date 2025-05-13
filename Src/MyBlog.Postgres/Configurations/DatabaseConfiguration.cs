@@ -1,4 +1,4 @@
-namespace MyBlog.Infrastructure.Configurations;
+namespace MyBlog.Postgres.Configurations;
 
 public class DatabaseConfiguration
 {

@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using MyBlog.Infrastructure.Data;
+using MyBlog.Postgres.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace MyBlog.Infrastructure.Migrations
+namespace MyBlog.Postgres.Migrations
 {
     [DbContext(typeof(MyBlogContext))]
     [Migration("20250510102658_Init")]

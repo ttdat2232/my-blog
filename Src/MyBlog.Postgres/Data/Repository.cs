@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using MyBlog.Core.Repositories;
 
-namespace MyBlog.Infrastructure.Data;
+namespace MyBlog.Postgres.Data;
 
 public class Repository<T, TId> : IRepository<T, TId>
     where T : class

@@ -8,7 +8,7 @@ A modern blog application built with .NET 9, implementing clean architecture pri
   - **MyBlog.Core** - Contains domain entities, interfaces, and business logic
   - **MyBlog.Application** - Houses application services, commands, queries using MediatR
 - **Infrastructure**
-  - **MyBlog.Infrastructure** - Implements data access, external services
+  - **MyBlog.Postgres** - Implements data access, external services
   - **MyBlog.Jwt** - JWT authentication/authorization components
 - **Presentation**
   - **MyBlog.WebApi** - API endpoints and configuration
@@ -45,7 +45,7 @@ cd ./my-blog
 3. Run database migrations
 
 ```sh
-dotnet ef database update -p ./Src/MyBlog.Infrastructure -s ./Src/MyBlog.WebApi
+dotnet ef database update -p ./Src/MyBlog.Postgres -s ./Src/MyBlog.WebApi
 ```
 
 4. Run the application

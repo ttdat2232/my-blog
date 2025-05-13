@@ -4,7 +4,7 @@ using MyBlog.Core.Primitives;
 using MyBlog.Core.Repositories;
 using MyBlog.Core.Repositories.Models;
 
-namespace MyBlog.Infrastructure.Data;
+namespace MyBlog.Postgres.Data;
 
 public sealed class UnitOfWork : IUnitOfWork
 {

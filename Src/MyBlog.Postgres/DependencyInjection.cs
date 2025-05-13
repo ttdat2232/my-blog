@@ -3,11 +3,11 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MyBlog.Core.Repositories;
-using MyBlog.Infrastructure.Configurations;
-using MyBlog.Infrastructure.Data;
+using MyBlog.Postgres.Configurations;
+using MyBlog.Postgres.Data;
 using Serilog;
 
-namespace MyBlog.Infrastructure;
+namespace MyBlog.Postgres;
 
 public static class DependencyInjection
 {
