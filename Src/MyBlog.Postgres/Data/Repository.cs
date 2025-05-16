@@ -53,7 +53,7 @@ public class Repository<T, TId> : IRepository<T, TId>
 
     public Task<T?> FindById(TId id, CancellationToken cancellationToken = default)
     {
-        return _dbSet.FindAsync(new { id }, cancellationToken).AsTask();
+        return _dbSet.FindAsync([id], cancellationToken).AsTask();
     }
 
     public async Task<IEnumerable<T>> GetAllAsync(

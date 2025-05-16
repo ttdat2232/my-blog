@@ -1,7 +1,7 @@
 using MyBlog.Core.Models;
 using MyBlog.Core.Services.Auth.Models;
 
-namespace MyBlog.Core.Services.Auth;
+namespace MyBlog.Core.Services.Auth.Tokens;
 
 public interface ITokenService
 {

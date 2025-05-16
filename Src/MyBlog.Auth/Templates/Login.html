@@ -124,9 +124,8 @@
       </div>
       <form
         class="login-form"
-        action="/auth/login"
-        method="POST"
-        onsubmit="return validateForm(event)"
+        id="loginForm"
+        onsubmit="return submitLoginForm(event)"
       >
         <div class="form-group">
           <label for="username">Username</label>
@@ -181,6 +180,62 @@
           return false;
         }
         return true;
+      }
+
+      async function submitLoginForm(event) {
+        event.preventDefault();
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        // Get query params from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const clientId = urlParams.get("clientId");
+        const redirectUri = urlParams.get("redirectUri");
+        const scopes =
+          urlParams.getAll("scopes").length > 0
+            ? urlParams.getAll("scopes")
+            : urlParams.get("scopes")
+            ? urlParams.get("scopes").split(" ")
+            : [];
+        const codeChallenge = urlParams.get("codeChallenge");
+        const challengeMethod = urlParams.get("challengeMethod");
+
+        const payload = {
+          usernameOrEmail: username,
+          password: password,
+        };
+
+        // Build query string for client params
+        const query = new URLSearchParams();
+        if (clientId) query.append("clientId", clientId);
+        if (redirectUri) query.append("redirectUri", redirectUri);
+        if (scopes && scopes.length > 0)
+          scopes.forEach((scope) => query.append("scopes", scope));
+        if (codeChallenge) query.append("codeChallenge", codeChallenge);
+        if (challengeMethod) query.append("challengeMethod", challengeMethod);
+
+        const response = await fetch(`/api/auth?${query.toString()}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const redirectQuery = new URLSearchParams();
+          if (data.authorizationCode)
+            redirectQuery.append("authorizationCode", data.authorizationCode);
+          window.location = data.redirectUri + "?" + redirectQuery.toString();
+          console.log(data);
+        } else {
+          const errorMsg = document.createElement("div");
+          errorMsg.className = "error-message";
+          errorMsg.textContent = "Login failed. Please check your credentials.";
+          document.querySelector(".login-form").appendChild(errorMsg);
+        }
+        return false;
       }
     </script>
   </body>

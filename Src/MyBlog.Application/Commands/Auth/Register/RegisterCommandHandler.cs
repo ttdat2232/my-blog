@@ -2,7 +2,7 @@ using MediatR;
 using MyBlog.Core.Aggregates.Users;
 using MyBlog.Core.Models;
 using MyBlog.Core.Repositories;
-using MyBlog.Core.Services.Auth;
+using MyBlog.Core.Services.Auth.Tokens;
 
 namespace MyBlog.Application.Commands.Auth.Register;
 

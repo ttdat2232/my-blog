@@ -6,8 +6,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MyBlog.Core.Models;
 using MyBlog.Core.Repositories;
-using MyBlog.Core.Services.Auth;
 using MyBlog.Core.Services.Auth.Models;
+using MyBlog.Core.Services.Auth.Tokens;
 using MyBlog.Jwt.Configurations;
 using Serilog;
 

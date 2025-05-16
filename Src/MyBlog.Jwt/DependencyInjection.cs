@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MyBlog.Core.Repositories;
-using MyBlog.Core.Services.Auth;
+using MyBlog.Core.Services.Auth.Tokens;
 using MyBlog.Jwt.Configurations;
 using MyBlog.Jwt.Repositories;
 using MyBlog.Jwt.Services;

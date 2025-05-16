@@ -1,7 +1,7 @@
 using MediatR;
 using MyBlog.Core.Models;
-using MyBlog.Core.Services.Auth;
 using MyBlog.Core.Services.Auth.Models;
+using MyBlog.Core.Services.Auth.Tokens;
 
 namespace MyBlog.Application.Commands.Auth.ValidateToken;
 

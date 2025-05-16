@@ -18,7 +18,7 @@ public static class DependencyInjection
 
         services.AddSingleton<ICacheKeyProvider, DefaultCacheKeyProvider>();
 
-        services.AddScoped<ICacheService, RedisCacheService>();
+        services.AddSingleton<ICacheService, RedisCacheService>();
 
         return services;
     }
