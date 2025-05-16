@@ -18,3 +18,8 @@ Content-Type: application/json
     "email": "dave2232@example.com",
     "password": "your-password"
 }
+
+### Validate
+POST {{host}}/api/auth/validate-access-token
+Content-Type: application/json
+Authorization: Bearer

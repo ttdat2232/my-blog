@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using MyBlog.Core.Aggregates.Roles;
 using MyBlog.Core.Aggregates.Users;
-using MyBlog.Core.Primitives;
 
 namespace MyBlog.Postgres.Data.TableConfigurations;
 
@@ -52,7 +52,45 @@ public class UserConfiguration : IEntityTypeConfiguration<UserAggregate>
 
         builder.Property(e => e.IsDeleted).HasColumnName("is_deleted");
 
-        // Configure indexes
+        // Configure many-to-many relationship with roles using join entity
+        builder
+            .HasMany<RoleAggregate>()
+            .WithMany()
+            .UsingEntity<UserRole>(
+                right =>
+                    right
+                        .HasOne<RoleAggregate>()
+                        .WithMany()
+                        .HasForeignKey(e => e.RoleId)
+                        .OnDelete(DeleteBehavior.Cascade),
+                left =>
+                    left.HasOne<UserAggregate>()
+                        .WithMany(u => u.Roles)
+                        .HasForeignKey(e => e.UserId)
+                        .OnDelete(DeleteBehavior.Cascade),
+                join =>
+                {
+                    join.ToTable("user_roles");
+                    join.HasKey(ur => new { ur.UserId, ur.RoleId });
+
+                    join.Property(ur => ur.UserId)
+                        .HasColumnName("user_id")
+                        .HasConversion(id => id.Value, value => UserId.From(value));
+
+                    join.Property(ur => ur.RoleId)
+                        .HasColumnName("role_id")
+                        .HasConversion(id => id.Value, value => RoleId.From(value));
+
+                    join.Ignore(e => e.Id);
+                    join.Ignore(e => e.CreatedAt);
+                    join.Ignore(e => e.UpdatedAt);
+                    join.Ignore(e => e.DeletedAt);
+                    join.Ignore(e => e.CreatedBy);
+                    join.Ignore(e => e.UpdatedBy);
+                    join.Ignore(e => e.IsDeleted);
+                }
+            );
+
         builder
             .HasIndex(x => x.NormalizeUserName)
             .HasDatabaseName("ix_users_normalize_user_name")
@@ -62,6 +100,10 @@ public class UserConfiguration : IEntityTypeConfiguration<UserAggregate>
             .HasIndex(x => x.NormalizeEmail)
             .HasDatabaseName("ix_users_normalize_email")
             .IsUnique();
+
+        builder
+            .Navigation(nameof(UserAggregate.Roles))
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
 
         builder
             .Metadata.FindNavigation("_follows")

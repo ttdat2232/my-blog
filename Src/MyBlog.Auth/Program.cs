@@ -13,9 +13,9 @@ builder.Services.AddMyBlogJwt(builder.Configuration);
 builder.Services.AddMyBlogDatabase(builder.Configuration);
 builder.Services.AddMyBlogRedis(builder.Configuration);
 
-builder.Services.AddOpenApi();
-
+builder.Services.AddControllers();
 builder.Services.AddCarter();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -25,4 +25,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.MapCarter();
+app.MapControllers();
+
 app.Run();

@@ -12,12 +12,12 @@ namespace MyBlog.Redis.Services;
 public class RedisCacheService : ICacheService
 {
     private readonly RedisCacheConnectionProvider _connectionProvider;
-    private readonly DefaultCacheKeyProvider _keyProvider;
+    private readonly ICacheKeyProvider _keyProvider;
     private readonly ICacheSettings _settings;
 
     public RedisCacheService(
         RedisCacheConnectionProvider connectionProvider,
-        DefaultCacheKeyProvider keyProvider,
+        ICacheKeyProvider keyProvider,
         ICacheSettings settings
     )
     {

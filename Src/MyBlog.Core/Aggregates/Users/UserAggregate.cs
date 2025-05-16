@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using MyBlog.Core.Aggregates.Roles;
 using MyBlog.Core.Aggregates.Users.Events;
 using MyBlog.Core.Primitives;
 
@@ -14,6 +15,8 @@ public sealed class UserAggregate : AggregateRoot<UserId>
     public string Password { get; private set; }
     public string? Avatar { get; private set; }
 
+    public IReadOnlyList<UserRole> Roles => _roles.AsReadOnly();
+
     /// <summary>
     /// Get users that followed by this user
     /// </summary>
@@ -25,6 +28,8 @@ public sealed class UserAggregate : AggregateRoot<UserId>
     /// </summary>
     /// <returns></returns>
     public IReadOnlyList<Subscription> FollowedBy => _followedBy.AsReadOnly();
+
+    private readonly IList<UserRole> _roles;
     private readonly IList<Subscription> _follows;
     private readonly IList<Subscription> _followedBy;
 
@@ -101,6 +106,18 @@ public sealed class UserAggregate : AggregateRoot<UserId>
         }
     }
 
+    public void AssignRole(params RoleId[] roleIds)
+    {
+        foreach (var roleId in roleIds)
+            _roles.Add(UserRole.From((Id, roleId)));
+    }
+
+    public void RemoveRoles(params RoleId[] roleIds)
+    {
+        foreach (var roleId in roleIds)
+            _roles.Remove(UserRole.From((Id, roleId)));
+    }
+
     private UserAggregate(
         UserId id,
         string userName,
@@ -118,6 +135,7 @@ public sealed class UserAggregate : AggregateRoot<UserId>
         Avatar = avatar;
         _followedBy = new List<Subscription>();
         _follows = new List<Subscription>();
+        _roles = new List<UserRole>();
         AddDomainEvent(new UserCreatedEvent(this));
     }
 

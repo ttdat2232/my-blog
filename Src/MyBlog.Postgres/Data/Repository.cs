@@ -16,7 +16,7 @@ public class Repository<T, TId> : IRepository<T, TId>
 
     public async Task AddAsync(T entity, CancellationToken cancellationToken = default)
     {
-        await _dbSet.AddAsync(entity);
+        await _dbSet.AddAsync(entity, cancellationToken);
     }
 
     public async Task AddRangeAsync(
@@ -24,7 +24,7 @@ public class Repository<T, TId> : IRepository<T, TId>
         CancellationToken cancellationToken = default
     )
     {
-        await _dbSet.AddRangeAsync(entities);
+        await _dbSet.AddRangeAsync(entities, cancellationToken);
     }
 
     public Task<int> CountAsync(
@@ -48,7 +48,7 @@ public class Repository<T, TId> : IRepository<T, TId>
         CancellationToken cancellationToken = default
     )
     {
-        return _dbSet.FirstOrDefaultAsync(expression);
+        return _dbSet.FirstOrDefaultAsync(expression, cancellationToken);
     }
 
     public Task<T?> FindById(TId id, CancellationToken cancellationToken = default)
@@ -110,7 +110,7 @@ public class Repository<T, TId> : IRepository<T, TId>
 
     public async Task<bool> IsExistedAsync(TId id, CancellationToken cancellationToken = default)
     {
-        return await _dbSet.FindAsync(new object[] { id! }, cancellationToken) != null;
+        return await _dbSet.FindAsync([id], cancellationToken) != null;
     }
 
     public Task UpdateAsync(T entity, CancellationToken cancellationToken = default)

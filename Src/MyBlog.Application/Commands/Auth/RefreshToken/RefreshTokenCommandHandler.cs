@@ -2,9 +2,9 @@ using MediatR;
 using MyBlog.Core.Models;
 using MyBlog.Core.Services.Auth;
 
-namespace MyBlog.Application.Commands.Users.RefreshToken;
+namespace MyBlog.Application.Commands.Auth.RefreshToken;
 
-public class RefreshTokenCommandHandler(IAuthService _authService)
+public class RefreshTokenCommandHandler(ITokenService _authService)
     : IRequestHandler<RefreshTokenCommand, Result<RefreshTokenResponse>>
 {
     public async Task<Result<RefreshTokenResponse>> Handle(

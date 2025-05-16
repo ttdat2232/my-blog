@@ -1,3 +1,3 @@
-namespace MyBlog.Application.Commands.Users.Register;
+namespace MyBlog.Application.Commands.Auth.Register;
 
 public record RegisterResponse(string AccessToken, int ExpireIn);

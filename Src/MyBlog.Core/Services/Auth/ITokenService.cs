@@ -3,7 +3,7 @@ using MyBlog.Core.Services.Auth.Models;
 
 namespace MyBlog.Core.Services.Auth;
 
-public interface IAuthService
+public interface ITokenService
 {
     Task<Result<TokenResponse>> GenerateTokenAsync(Guid userId, string username, string email);
     Task<Result<TokenResponse>> RefreshTokenAsync(string refreshToken);

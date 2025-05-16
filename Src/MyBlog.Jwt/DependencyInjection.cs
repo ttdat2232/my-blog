@@ -17,7 +17,7 @@ public static class DependencyInjection
     {
         services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
         services.AddScoped<ITokenRepository, TokenRepository>();
-        services.AddScoped<IAuthService, JwtAuthService>();
+        services.AddScoped<ITokenService, JwtService>();
         return services;
     }
 }

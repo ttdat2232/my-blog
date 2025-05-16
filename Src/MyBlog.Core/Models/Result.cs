@@ -1,6 +1,6 @@
 namespace MyBlog.Core.Models;
 
-public class Result<T>
+public class Result<T> : IResult
 {
     private Result(bool isSuccess, T? data, Error error)
     {
@@ -24,4 +24,6 @@ public class Result<T>
 
     public static Result<T> Failure(string description, int code) =>
         new(false, default, new(description, code));
+
+    public object GetData() => Data!;
 }

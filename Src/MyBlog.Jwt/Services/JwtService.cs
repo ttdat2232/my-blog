@@ -13,12 +13,12 @@ using Serilog;
 
 namespace MyBlog.Jwt.Services;
 
-public class JwtAuthService : IAuthService
+public class JwtService : ITokenService
 {
     private readonly JwtSettings _jwtSettings;
     private readonly ITokenRepository _tokenRepository;
 
-    public JwtAuthService(IOptions<JwtSettings> jwtSettings, ITokenRepository tokenRepository)
+    public JwtService(IOptions<JwtSettings> jwtSettings, ITokenRepository tokenRepository)
     {
         _jwtSettings = jwtSettings.Value;
         _tokenRepository = tokenRepository;
@@ -36,7 +36,8 @@ public class JwtAuthService : IAuthService
             {
                 new(JwtRegisteredClaimNames.Sub, userId.ToString()),
                 new(JwtRegisteredClaimNames.Email, email),
-                new(ClaimTypes.Name, username),
+                new("username", username),
+                new("userId", userId.ToString()),
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 
@@ -117,9 +118,9 @@ public class JwtAuthService : IAuthService
             {
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(key),
-                ValidateIssuer = true,
+                ValidateIssuer = opts.IsValidateIssuer,
                 ValidIssuer = _jwtSettings.Issuer,
-                ValidateAudience = true,
+                ValidateAudience = opts.IsValidateAudience,
                 ValidAudience = _jwtSettings.Audience,
                 ValidateLifetime = opts.IsValidateLifeTime,
                 ClockSkew = TimeSpan.Zero,

@@ -4,9 +4,9 @@ using MyBlog.Core.Models;
 using MyBlog.Core.Repositories;
 using MyBlog.Core.Services.Auth;
 
-namespace MyBlog.Application.Commands.Users.Login;
+namespace MyBlog.Application.Commands.Auth.Login;
 
-public class LoginCommandHandler(IUnitOfWork _unitOfWork, IAuthService _authService)
+public class LoginCommandHandler(IUnitOfWork _unitOfWork, ITokenService _authService)
     : IRequestHandler<LoginCommand, Result<LoginResponse>>
 {
     public async Task<Result<LoginResponse>> Handle(

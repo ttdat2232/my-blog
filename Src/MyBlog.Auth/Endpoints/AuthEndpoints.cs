@@ -1,8 +1,9 @@
 using Carter;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using MyBlog.Application.Commands.Users.Login;
-using MyBlog.Application.Commands.Users.Register;
+using MyBlog.Application.Commands.Auth.Login;
+using MyBlog.Application.Commands.Auth.Register;
+using MyBlog.Application.Commands.Auth.ValidateToken;
 using MyBlog.Auth.Extensions;
 using MyBlog.Auth.Models.Auth;
 
@@ -15,6 +16,24 @@ public class AuthEndpoints : ICarterModule
         var group = app.MapGroup("api/auth");
         group.MapPost("login", LoginAsync);
         group.MapPost("register", RegisterAsync);
+        group.MapPost("validate-access-token", ValidateTokenAsync);
+    }
+
+    private static async Task<IActionResult> ValidateTokenAsync(
+        HttpContext context,
+        ISender sender,
+        CancellationToken cancellationToken
+    )
+    {
+        var token = context.Request.Query["Token"].ToString();
+        if (string.IsNullOrEmpty(token))
+        {
+            token = context.Request.Headers.Authorization.ToString().Replace("Bearer", "");
+        }
+
+        var validateTokenCommand = new ValidateTokenCommand(token);
+        var result = await sender.Send(validateTokenCommand, cancellationToken);
+        return result.ToActionResult();
     }
 
     private static async Task<IActionResult> RegisterAsync(
