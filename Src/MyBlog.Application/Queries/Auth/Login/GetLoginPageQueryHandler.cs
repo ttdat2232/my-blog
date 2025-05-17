@@ -1,11 +1,13 @@
 using MediatR;
 using MyBlog.Core.Aggregates.Clients;
 using MyBlog.Core.Models;
+using MyBlog.Core.Models.Auth;
 using MyBlog.Core.Repositories;
+using MyBlog.Core.Services.Cache;
 
 namespace MyBlog.Application.Queries.Auth.Login;
 
-public class GetLoginPageQueryHandler(IUnitOfWork _unitOfWork)
+public class GetLoginPageQueryHandler(IUnitOfWork _unitOfWork, ICacheService _cacheService)
     : IRequestHandler<GetLoginPageQuery, Result<bool>>
 {
     public async Task<Result<bool>> Handle(
@@ -34,6 +36,14 @@ public class GetLoginPageQueryHandler(IUnitOfWork _unitOfWork)
         )
             return Result<bool>.Failure(new("Invalid code challenge or method", 400));
 
+        var codeChallenge = AuthCodeChallengeInformation.Create(
+            request.CodeChallenge,
+            request.ChallengeMethod,
+            request.ClientId,
+            request.RedirectUri,
+            request.Scopes
+        );
+        _ = _cacheService.SetAsync(request.SessionId, codeChallenge, TimeSpan.FromMinutes(10));
         return Result<bool>.Success(true);
     }
 }

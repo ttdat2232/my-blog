@@ -9,42 +9,16 @@ namespace MyBlog.Redis.Services;
 /// </summary>
 public class RedisCacheConnectionProvider : IDisposable
 {
-    private readonly ICacheSettings _settings;
-    private ConnectionMultiplexer? _connection;
+    private readonly IConnectionMultiplexer _connection;
     private bool _disposed;
 
-    public RedisCacheConnectionProvider(ICacheSettings settings)
+    public RedisCacheConnectionProvider(IConnectionMultiplexer connectionMultiplexer)
     {
-        _settings = settings ?? throw new ArgumentNullException(nameof(settings));
-        InitializeConnection();
-    }
-
-    private void InitializeConnection()
-    {
-        try
-        {
-            _connection = ConnectionMultiplexer.Connect(_settings.ConnectionString);
-            Log.Information("Redis connection established successfully");
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Failed to connect to Redis");
-            _connection = null;
-        }
+        _connection = connectionMultiplexer;
     }
 
     public IDatabase GetDatabase()
     {
-        if (_connection == null || !IsConnected())
-        {
-            InitializeConnection();
-
-            if (_connection == null)
-            {
-                throw new InvalidOperationException("Cannot connect to Redis");
-            }
-        }
-
         return _connection.GetDatabase();
     }
 

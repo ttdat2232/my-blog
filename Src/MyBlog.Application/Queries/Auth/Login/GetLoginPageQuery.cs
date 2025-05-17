@@ -1,5 +1,4 @@
 using MediatR;
-
 using MyBlog.Core.Models;
 
 namespace MyBlog.Application.Queries.Auth.Login;
@@ -9,5 +8,6 @@ public record GetLoginPageQuery(
     string RedirectUri,
     string[] Scopes,
     string CodeChallenge,
-    string ChallengeMethod
+    string ChallengeMethod,
+    string SessionId
 ) : IRequest<Result<bool>>;

@@ -485,3 +485,7 @@ $RECYCLE.BIN/
 
 #vscode
 .vscode/
+
+#Templates
+**/Templates/[Ii]ndex.html
+**/Templates/[Cc]allback.html

@@ -15,6 +15,8 @@ builder.Services.AddMyBlogRedis(builder.Configuration);
 
 builder.Services.AddControllers();
 builder.Services.AddCarter();
+builder.Services.AddSession();
+builder.Services.AddRazorPages();
 
 var app = builder.Build();
 
@@ -24,7 +26,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseSession();
 app.MapCarter();
 app.MapControllers();
+app.UseStaticFiles();
+app.MapRazorPages().WithStaticAssets();
 
-app.Run();
+await app.RunAsync();

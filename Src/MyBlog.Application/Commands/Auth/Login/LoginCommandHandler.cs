@@ -2,6 +2,7 @@ using MediatR;
 using MyBlog.Core.Aggregates.Clients;
 using MyBlog.Core.Aggregates.Users;
 using MyBlog.Core.Models;
+using MyBlog.Core.Models.Auth;
 using MyBlog.Core.Repositories;
 using MyBlog.Core.Services.Cache;
 
@@ -15,27 +16,6 @@ public class LoginCommandHandler(IUnitOfWork _unitOfWork, ICacheService _cacheSe
         CancellationToken cancellationToken
     )
     {
-        var clientRepo = _unitOfWork.Repository<ClientAggregate, ClientId>();
-        Serilog.Log.Information("fetching data of client {Id}", request.ClientId);
-        if (!Guid.TryParse(request.ClientId.Trim(), out var clientId))
-            return Result<LoginResponse>.Failure(new("Invalidate Client Id", 401));
-
-        var client = await clientRepo.FindById(ClientId.From(clientId), cancellationToken);
-        if (client == null)
-            return Result<LoginResponse>.Failure(new("Client not found", 404));
-
-        if (!client.RedirectUris.Contains(request.RedirectUri))
-            return Result<LoginResponse>.Failure(new("Invalid redirect uri", 400));
-
-        if (request.Scopes.Any(scope => !client.AllowScopes.Contains(scope)))
-            return Result<LoginResponse>.Failure(new("Invalid scope(s)", 400));
-
-        if (
-            string.IsNullOrWhiteSpace(request.CodeChallenge)
-            || string.IsNullOrWhiteSpace(request.ChallengeMethod)
-        )
-            return Result<LoginResponse>.Failure(new("Invalid code challenge or method", 400));
-
         var userRepo = _unitOfWork.Repository<UserAggregate, UserId>();
         var user = await userRepo.FindBy(u =>
             u.NormalizeUserName.Equals(request.UsernameOrEmail.ToLower())
@@ -45,15 +25,30 @@ public class LoginCommandHandler(IUnitOfWork _unitOfWork, ICacheService _cacheSe
         if (user == null)
             return Result<LoginResponse>.Failure(UserErrors.InvalidCredentials);
 
-        if (!user.ValidatePassword(request.Password))
+        // if (!user.ValidatePassword(request.Password))
+        //     return Result<LoginResponse>.Failure(UserErrors.InvalidCredentials);
+
+        var authorizaeCodeInfo =
+            await _cacheService.GetAndRemoveAsync<AuthCodeChallengeInformation>(
+                request.SessionId,
+                cancellationToken
+            );
+        if (authorizaeCodeInfo == null)
             return Result<LoginResponse>.Failure(UserErrors.InvalidCredentials);
 
         var authorizationCode = GenerateAuthorizationCode();
+        authorizaeCodeInfo.AddAuthorizationCode(authorizationCode);
         _ = _cacheService
-            .SetAsync(authorizationCode, request.CodeChallenge)
-            .ContinueWith(_ => Serilog.Log.Information("Set authorization code to redis complete"));
+            .SetAsync(authorizationCode, authorizaeCodeInfo)
+            .ContinueWith(t =>
+            {
+                if (t.Status == TaskStatus.RanToCompletion)
+                    Serilog.Log.Information("Set authorization code to redis complete");
+            });
 
-        return Result<LoginResponse>.Success(new(authorizationCode, request.RedirectUri));
+        return Result<LoginResponse>.Success(
+            new(authorizationCode, authorizaeCodeInfo.RedirectUri)
+        );
     }
 
     private static string GenerateAuthorizationCode()

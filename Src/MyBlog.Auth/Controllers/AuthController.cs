@@ -7,11 +7,11 @@ using MyBlog.Auth.Models.Auth;
 namespace MyBlog.Auth.Controllers;
 
 [Route("[controller]")]
-public class AuthController(ISender sender) : ControllerBase
+public class AuthController(ISender sender) : Controller
 {
     [HttpGet]
     [HttpGet("login")]
-    public async Task<IActionResult> GetLoginPage(
+    public async Task<IActionResult> Index(
         [FromQuery] ClientQuery query,
         CancellationToken cancellationToken
     )
@@ -21,7 +21,8 @@ public class AuthController(ISender sender) : ControllerBase
             query.RedirectUri,
             query.Scopes,
             query.CodeChallenge,
-            query.ChallengeMethod
+            query.ChallengeMethod,
+            HttpContext.Session.Id
         );
         var result = await sender.Send(loginPageQuery, cancellationToken);
         if (!result.IsSuccess)
@@ -34,12 +35,25 @@ public class AuthController(ISender sender) : ControllerBase
                 StatusCode = 403,
             };
         }
-        using var loginStream = new StreamReader("Templates/Login.html");
-        return new ContentResult()
-        {
-            ContentType = "text/html",
-            Content = await loginStream.ReadToEndAsync(),
-        };
+        return View(new LoginRequest("", "", HttpContext.Session.Id));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> LoginAsync(
+        LoginRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        var command = new LoginCommand(
+            request.UsernameOrEmail,
+            request.Password,
+            request.SessionId
+        );
+        var result = await sender.Send(command, cancellationToken);
+
+        return Redirect(
+            $"{result.Data.RedirectUri}?authorizationCode={result.Data.AuthorizationCode}"
+        );
     }
 
     [HttpGet("register")]
@@ -54,28 +68,4 @@ public class AuthController(ISender sender) : ControllerBase
             Content = await stream.ReadToEndAsync(),
         };
     }
-
-    #region  API
-
-    [HttpPost("~/api/[controller]")]
-    public async Task<IActionResult> LoginAsync(
-        [FromQuery] ClientQuery query,
-        [FromBody] Models.Auth.LoginRequest request,
-        CancellationToken cancellationToken
-    )
-    {
-        var command = new LoginCommand(
-            request.UsernameOrEmail,
-            request.Password,
-            query.ClientId,
-            query.RedirectUri,
-            query.Scopes,
-            query.CodeChallenge,
-            query.ChallengeMethod
-        );
-        var result = await sender.Send(command, cancellationToken);
-        return result.ToActionResult();
-    }
-
-    #endregion
 }

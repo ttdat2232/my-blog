@@ -14,6 +14,14 @@ public interface ICacheService
     Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets an item from the cache
+    /// </summary>
+    /// <param name="key">Cache key</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The cached item, or null if not found</returns>
+    Task<T?> GetAndRemoveAsync<T>(string key, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Sets an item in the cache with optional expiration
     /// </summary>
     /// <param name="key">Cache key</param>

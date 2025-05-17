@@ -1,6 +1,7 @@
-using System.Text.Json;
 using MyBlog.Core.Services.Cache;
 using MyBlog.Redis.Settings;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using Serilog;
 
 namespace MyBlog.Redis.Services;
@@ -8,7 +9,6 @@ namespace MyBlog.Redis.Services;
 /// <summary>
 /// Redis implementation of the cache service
 /// </summary>
-/// <typeparam name="T">Type of cached items</typeparam>
 public class RedisCacheService : ICacheService
 {
     private readonly RedisCacheConnectionProvider _connectionProvider;
@@ -21,10 +21,30 @@ public class RedisCacheService : ICacheService
         ICacheSettings settings
     )
     {
+#pragma warning disable CS0618
+        JsonConvert.DefaultSettings = () =>
+            new JsonSerializerSettings
+            {
+                ContractResolver = new DefaultContractResolver
+                {
+                    DefaultMembersSearchFlags =
+                        System.Reflection.BindingFlags.Public
+                        | System.Reflection.BindingFlags.NonPublic
+                        | System.Reflection.BindingFlags.Instance,
+                },
+            };
+#pragma warning restore CS0618
+
         _connectionProvider =
             connectionProvider ?? throw new ArgumentNullException(nameof(connectionProvider));
         _keyProvider = keyProvider ?? throw new ArgumentNullException(nameof(keyProvider));
         _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        Log.Debug(
+            "RedisCacheService initialized with connectionProvider: {ConnectionProvider}, keyProvider: {KeyProvider}, settings: {Settings}",
+            connectionProvider.GetType().Name,
+            keyProvider.GetType().Name,
+            settings.GetType().Name
+        );
     }
 
     public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
@@ -43,7 +63,7 @@ public class RedisCacheService : ICacheService
             }
 
             Log.Debug("Cache hit for key: {Key}", formattedKey);
-            return JsonSerializer.Deserialize<T>(value.ToString());
+            return JsonConvert.DeserializeObject<T>(value.ToString());
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -64,7 +84,7 @@ public class RedisCacheService : ICacheService
             cancellationToken.ThrowIfCancellationRequested();
             var formattedKey = _keyProvider.GenerateKey(typeof(T).Name, key);
             var database = _connectionProvider.GetDatabase();
-            var serializedValue = JsonSerializer.Serialize(value);
+            var serializedValue = JsonConvert.SerializeObject(value);
 
             var actualExpiry = expiry ?? _settings.DefaultExpiration;
 
@@ -160,5 +180,35 @@ public class RedisCacheService : ICacheService
         }
 
         return newValue;
+    }
+
+    public async Task<T?> GetAndRemoveAsync<T>(
+        string key,
+        CancellationToken cancellationToken = default
+    )
+    {
+        try
+        {
+            var formattedKey = _keyProvider.GenerateKey(typeof(T).Name, key);
+            var database = _connectionProvider.GetDatabase();
+            var value = await database.StringGetAsync(formattedKey);
+
+            if (value.IsNull)
+            {
+                Log.Debug("Cache miss for key: {Key}", formattedKey);
+                return default;
+            }
+
+            await database.KeyDeleteAsync(formattedKey);
+
+            Log.Debug("Cache hit and removed for key: {Key}", formattedKey);
+            Log.Debug("Fetched value: {Value}", value.ToString());
+            return JsonConvert.DeserializeObject<T>(value.ToString());
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Log.Error(ex, "Error getting and removing value from cache for key: {Key}", key);
+            return default;
+        }
     }
 }
