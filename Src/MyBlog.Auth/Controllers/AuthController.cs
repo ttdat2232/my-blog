@@ -1,6 +1,8 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using MyBlog.Application.Commands.Auth.Login;
+using MyBlog.Application.Commands.Auth.Register;
+using MyBlog.Application.Commands.Auth.RegisterClient;
 using MyBlog.Auth.Extensions;
 using MyBlog.Auth.Models.Auth;
 
@@ -55,5 +57,24 @@ public class AuthController(ISender sender) : Controller
         return Redirect(
             $"{result.Data.RedirectUri}?authorizationCode={result.Data.AuthorizationCode}"
         );
+    }
+
+    [HttpGet("register")]
+    public IActionResult RegisterAsync()
+    {
+        return View("Register");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> RegisterAsync(
+        RegisterRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        var result = await sender.Send(
+            new RegisterCommand(request.Username, request.Email, request.Password),
+            cancellationToken
+        );
+        return result.ToActionResult();
     }
 }
