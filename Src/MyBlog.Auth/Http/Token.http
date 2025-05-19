@@ -1,0 +1,5 @@
+@host = http://localhost:5295
+### Validate
+
+GET {{host}}/api/token?authorizationCode=&veriferCode=
+Content-Type: application/json

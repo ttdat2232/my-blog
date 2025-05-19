@@ -50,22 +50,10 @@ public class AuthController(ISender sender) : Controller
             request.SessionId
         );
         var result = await sender.Send(command, cancellationToken);
-
+        if (result.IsFailure)
+            return View("index");
         return Redirect(
             $"{result.Data.RedirectUri}?authorizationCode={result.Data.AuthorizationCode}"
         );
-    }
-
-    [HttpGet("register")]
-    [HttpGet("sign-in")]
-    public async Task<IActionResult> GetRegisterPage()
-    {
-        using var stream = new StreamReader("Templates/Register.html");
-
-        return new ContentResult()
-        {
-            ContentType = "text/html",
-            Content = await stream.ReadToEndAsync(),
-        };
     }
 }

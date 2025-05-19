@@ -25,8 +25,8 @@ public class LoginCommandHandler(IUnitOfWork _unitOfWork, ICacheService _cacheSe
         if (user == null)
             return Result<LoginResponse>.Failure(UserErrors.InvalidCredentials);
 
-        // if (!user.ValidatePassword(request.Password))
-        //     return Result<LoginResponse>.Failure(UserErrors.InvalidCredentials);
+        if (!user.ValidatePassword(request.Password))
+            return Result<LoginResponse>.Failure(UserErrors.InvalidCredentials);
 
         var authorizaeCodeInfo =
             await _cacheService.GetAndRemoveAsync<AuthCodeChallengeInformation>(
@@ -34,10 +34,11 @@ public class LoginCommandHandler(IUnitOfWork _unitOfWork, ICacheService _cacheSe
                 cancellationToken
             );
         if (authorizaeCodeInfo == null)
-            return Result<LoginResponse>.Failure(UserErrors.InvalidCredentials);
+            return Result<LoginResponse>.Failure(UserErrors.InvalidClient);
 
         var authorizationCode = GenerateAuthorizationCode();
         authorizaeCodeInfo.AddAuthorizationCode(authorizationCode);
+        authorizaeCodeInfo.AddUserInformation(user.Id);
         _ = _cacheService
             .SetAsync(authorizationCode, authorizaeCodeInfo)
             .ContinueWith(t =>
