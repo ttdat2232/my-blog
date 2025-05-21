@@ -16,17 +16,6 @@ builder.Services.AddMyBlogJwt(builder.Configuration);
 builder.Services.AddMyBlogRedis(builder.Configuration);
 builder.Services.AddMyBlogDatabase(builder.Configuration);
 
-builder.Services.AddHttpClient(
-    "auth",
-    conifg =>
-    {
-        conifg.BaseAddress = new Uri(
-            builder.Configuration["Auth:Url"] ?? throw new ArgumentException("Auth:Url")
-        );
-        conifg.Timeout = TimeSpan.FromSeconds(30);
-    }
-);
-
 builder
     .Services.AddAuthentication()
     .AddScheme<AuthenticationSchemeOptions, MyBlogAuthenticationHandler>("MyBlogBearer", null);

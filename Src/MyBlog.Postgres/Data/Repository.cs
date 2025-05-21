@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using MyBlog.Core.Repositories;
+using MyBlog.Core.Specifications;
 
 namespace MyBlog.Postgres.Data;
 
@@ -89,6 +90,48 @@ public class Repository<T, TId> : IRepository<T, TId>
         query = query.Skip(pageIndex * pageSize).Take(pageSize);
 
         return await query.Select(select).ToListAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<TMapped>> GetAsync<TMapped>(
+        ISpecification<T> specification,
+        CancellationToken cancellationToken = default
+    )
+    {
+        IQueryable<T> query = specification.IsTracking ? _dbSet : _dbSet.AsNoTracking();
+
+        if (specification.Criteria != null)
+            query = query.Where(specification.Criteria);
+
+        foreach (var include in specification.Includes)
+            query = query.Include(include);
+
+        foreach (var includeString in specification.IncludeStrings)
+            query = query.Include(includeString);
+
+        if (specification.OrderBy != null)
+            query = query.OrderBy(specification.OrderBy);
+        if (specification.OrderByDescending != null)
+            query = query.OrderByDescending(specification.OrderByDescending);
+        foreach (var orderBy in specification.OrderByList)
+            query = ((IOrderedQueryable<T>)query).ThenBy(orderBy);
+        foreach (var orderByDesc in specification.OrderByDescendingList)
+            query = ((IOrderedQueryable<T>)query).ThenByDescending(orderByDesc);
+
+        if (specification.Skip.HasValue)
+            query = query.Skip(specification.Skip.Value);
+        if (specification.Take.HasValue)
+            query = query.Take(specification.Take.Value);
+
+        if (specification.Selector != null)
+        {
+            var projected = query.Select(specification.Selector);
+            var result = await projected.ToListAsync(cancellationToken);
+            return result.OfType<TMapped>();
+        }
+
+        return await query
+            .ToListAsync(cancellationToken)
+            .ContinueWith(t => t.Result.OfType<TMapped>());
     }
 
     public async Task<TMapped?> GetOneAsync<TMapped>(
