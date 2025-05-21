@@ -66,4 +66,17 @@ public interface ICacheService
         TimeSpan? expiry = null,
         CancellationToken cancellationToken = default
     );
+
+    /// <summary>
+    /// Remove items when their key match a pattern
+    /// </summary>
+    /// <param name="pattern">Key pattern</param>
+    /// <param name="isReturn">Whether return removed values</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns></returns>
+    Task<IEnumerable<T>> RemoveAllByKeyPatternAsync<T>(
+        string pattern,
+        bool isReturn = false,
+        CancellationToken cancellationToken = default
+    );
 }

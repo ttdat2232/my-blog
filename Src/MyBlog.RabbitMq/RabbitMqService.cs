@@ -1,8 +1,7 @@
-﻿using System.Collections.Concurrent;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 using Microsoft.Extensions.Options;
 using MyBlog.Core.Models.Messages;
+using MyBlog.Core.Services.Cache;
 using MyBlog.Core.Services.Messages;
 using MyBlog.RabbitMq.Configurations;
 using RabbitMQ.Client;
@@ -19,24 +18,24 @@ public class RabbitMqMessageBroker : IMessageBroker
     private readonly IOptions<RabbitMqConfiguration> _configOpts;
     private IConnection _connection = null!;
     private IChannel _channel = null!;
-    private readonly ConcurrentDictionary<string, string> _consumingTags =
-        new ConcurrentDictionary<string, string>();
-    private readonly ConcurrentDictionary<string, BasicGetResult> _messageRefs =
-        new ConcurrentDictionary<string, BasicGetResult>();
+    private readonly ICacheService _cacheService;
+
     private bool _disposed;
 
     public RabbitMqMessageBroker(
         IMessageSerializer serializer,
-        IOptions<RabbitMqConfiguration> configOpts
+        IOptions<RabbitMqConfiguration> configOpts,
+        ICacheService cacheService
     )
     {
         _serializer = serializer;
         _configOpts = configOpts;
+        _cacheService = cacheService;
+        InitializeAsync().Wait();
     }
 
     public async Task InitializeAsync()
     {
-        // Ensure closure of connection
         if (_connection != null)
         {
             try
@@ -76,10 +75,13 @@ public class RabbitMqMessageBroker : IMessageBroker
 
     public async Task AcknowledgeAsync(string messageId, bool multiple = false)
     {
-        if (_messageRefs.TryGetValue(messageId, out var result))
+        var result = await _cacheService.GetAndRemoveAsync<BasicGetResult>(
+            $"rabbitmq:message:{messageId}"
+        );
+
+        if (result != null)
         {
             await _channel.BasicAckAsync(result.DeliveryTag, multiple);
-            _messageRefs.TryRemove(messageId, out _);
         }
         else
         {
@@ -138,7 +140,7 @@ public class RabbitMqMessageBroker : IMessageBroker
 
             var message = new Message<T> { Payload = payload, Metadata = metadata };
 
-            _messageRefs[metadata.MessageId] = result;
+            await _cacheService.SetAsync($"rabbitmq:message:{metadata.MessageId}", result);
             return message;
         }
         catch (Exception ex)
@@ -202,46 +204,6 @@ public class RabbitMqMessageBroker : IMessageBroker
         await _channel.QueueDeleteAsync(queueName, ifUnused, ifEmpty);
     }
 
-    public void Dispose()
-    {
-        Dispose(true).Wait();
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual async Task Dispose(bool disposing)
-    {
-        if (_disposed)
-            return;
-
-        if (disposing)
-        {
-            try
-            {
-                foreach (var tag in _consumingTags)
-                {
-                    if (_channel?.IsOpen == true)
-                    {
-                        await _channel.BasicCancelAsync(tag.Value);
-                    }
-                }
-
-                _consumingTags.Clear();
-                _messageRefs.Clear();
-
-                await _channel?.CloseAsync();
-                _channel?.Dispose();
-                await _connection?.CloseAsync();
-                _connection?.Dispose();
-            }
-            catch (Exception ex)
-            {
-                Serilog.Log.Error(ex, "Error disposing RabbitMQ connection");
-            }
-        }
-
-        _disposed = true;
-    }
-
     public Task<bool> GetHealthStatusAsync()
     {
         return Task.FromResult(_channel?.IsOpen == true && _connection?.IsOpen == true);
@@ -285,10 +247,12 @@ public class RabbitMqMessageBroker : IMessageBroker
 
     public async Task RejectAsync(string messageId, bool requeue = true)
     {
-        if (_messageRefs.TryGetValue(messageId, out var result))
+        var result = await _cacheService.GetAndRemoveAsync<BasicGetResult>(
+            $"rabbitmq:message:{messageId}"
+        );
+        if (result != null)
         {
             await _channel.BasicRejectAsync(result.DeliveryTag, requeue);
-            _messageRefs.TryRemove(messageId, out _);
         }
         else
         {
@@ -347,14 +311,17 @@ public class RabbitMqMessageBroker : IMessageBroker
 
                 var message = new Message<T> { Payload = payload!, Metadata = metadata };
 
-                _messageRefs[metadata.MessageId] = new BasicGetResult(
-                    args.DeliveryTag,
-                    args.Redelivered,
-                    args.Exchange,
-                    args.RoutingKey,
-                    0,
-                    args.BasicProperties,
-                    args.Body
+                await _cacheService.SetAsync(
+                    $"rabbitmq:message:{metadata.MessageId}",
+                    new BasicGetResult(
+                        args.DeliveryTag,
+                        args.Redelivered,
+                        args.Exchange,
+                        args.RoutingKey,
+                        0,
+                        args.BasicProperties,
+                        args.Body
+                    )
                 );
 
                 var success = await messageHandler(message);
@@ -369,7 +336,7 @@ public class RabbitMqMessageBroker : IMessageBroker
                     {
                         await _channel.BasicRejectAsync(args.DeliveryTag, true);
                     }
-                    _messageRefs.TryRemove(metadata.MessageId, out _);
+                    _ = _cacheService.RemoveAsync($"rabbitmq:message:{metadata.MessageId}");
                 }
             }
             catch (Exception ex)
@@ -380,19 +347,81 @@ public class RabbitMqMessageBroker : IMessageBroker
         };
 
         var tag = await _channel.BasicConsumeAsync(queueName, false, consumer);
-        _consumingTags[queueName] = tag;
+        await _cacheService.SetAsync($"rabbitmq:consumingtag:{queueName}", tag);
 
-        // Keep this running until cancelled
         var tcs = new TaskCompletionSource<bool>();
         using (cancellationToken.Register(() => tcs.TrySetResult(true)))
         {
             await tcs.Task;
 
-            // Cancel consumer
-            if (_consumingTags.TryRemove(queueName, out var consumerTag))
+            var consumerTag = await _cacheService.GetAndRemoveAsync<string>(
+                $"rabbitmq:consumingtag:{queueName}"
+            );
+            if (consumerTag != null)
             {
                 await _channel.BasicCancelAsync(consumerTag);
             }
+        }
+    }
+
+    public async void Dispose()
+    {
+        await Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual async Task Dispose(bool disposing)
+    {
+        if (_disposed)
+            return;
+
+        if (disposing)
+        {
+            await CleanUp();
+        }
+
+        _disposed = true;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed)
+            return;
+        await CleanUp();
+        _disposed = true;
+        GC.SuppressFinalize(this);
+    }
+
+    private async Task CleanUp()
+    {
+        try
+        {
+            _ = _cacheService.RemoveAllByKeyPatternAsync<BasicGetResult>("rabbitmq:message:");
+            var _consumingTags = await _cacheService.RemoveAllByKeyPatternAsync<string>(
+                "rabbitmq:consumingtag:",
+                true
+            );
+            foreach (var tag in _consumingTags)
+            {
+                if (_channel?.IsOpen == true)
+                {
+                    await _channel.BasicCancelAsync(tag);
+                }
+            }
+            if (_channel != null)
+            {
+                await _channel.CloseAsync();
+                _channel.Dispose();
+            }
+            if (_connection != null)
+            {
+                await _connection.CloseAsync();
+                _connection.Dispose();
+            }
+        }
+        catch (Exception ex)
+        {
+            Serilog.Log.Error(ex, "Error disposing RabbitMQ connection asynchronously");
         }
     }
 }

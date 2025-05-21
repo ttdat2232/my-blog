@@ -2,7 +2,7 @@ using MyBlog.Core.Models.Messages;
 
 namespace MyBlog.Core.Services.Messages;
 
-public interface IMessageBroker : IDisposable
+public interface IMessageBroker : IDisposable, IAsyncDisposable
 {
     /// <summary>
     /// Initializes the message broker with the provided options.

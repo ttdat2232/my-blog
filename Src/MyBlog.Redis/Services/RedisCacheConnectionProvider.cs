@@ -22,6 +22,8 @@ public class RedisCacheConnectionProvider : IDisposable
         return _connection.GetDatabase();
     }
 
+    public IServer GetServer() => _connection.GetServer(_connection.GetEndPoints()[0]);
+
     public bool IsConnected()
     {
         return _connection?.IsConnected ?? false;

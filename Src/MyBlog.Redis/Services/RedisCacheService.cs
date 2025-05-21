@@ -3,6 +3,7 @@ using MyBlog.Redis.Settings;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Serilog;
+using StackExchange.Redis;
 
 namespace MyBlog.Redis.Services;
 
@@ -210,5 +211,69 @@ public class RedisCacheService : ICacheService
             Log.Error(ex, "Error getting and removing value from cache for key: {Key}", key);
             return default;
         }
+    }
+
+    public async Task<IEnumerable<T>> RemoveAllByKeyPatternAsync<T>(
+        string pattern,
+        bool isReturn = false,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var removedValues = new List<T>();
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var server = _connectionProvider.GetServer();
+            var database = _connectionProvider.GetDatabase();
+
+            var keyLength = 0;
+            do
+            {
+                var keys = server.Keys(database.Database, pattern).ToArray();
+                keyLength = keys.Length;
+                if (keyLength == 0)
+                {
+                    Log.Debug("No keys found matching pattern: {Pattern}", pattern);
+                    return removedValues;
+                }
+
+                var deleteTasks = keys.Select(async key =>
+                {
+                    RedisValue? value = null;
+                    if (isReturn)
+                    {
+                        value = await database.StringGetAsync(key);
+                    }
+                    bool deleted = await database.KeyDeleteAsync(key);
+
+                    if (deleted && value.HasValue)
+                    {
+                        try
+                        {
+                            var deserialized = JsonConvert.DeserializeObject<T>(value!);
+                            if (
+                                !EqualityComparer<T>.Default.Equals(deserialized, default)
+                                && deserialized != null
+                            )
+                            {
+                                removedValues.Add(deserialized);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Warning(ex, "Failed to deserialize value for key: {Key}", key);
+                        }
+                    }
+                });
+                await Task.WhenAll(deleteTasks);
+
+                Log.Debug("Removed {Count} keys matching pattern: {Pattern}", keys.Length, pattern);
+            } while (keyLength > 0 && !cancellationToken.IsCancellationRequested);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Log.Error(ex, "Error removing keys matching pattern: {Pattern}", pattern);
+        }
+        return removedValues;
     }
 }
