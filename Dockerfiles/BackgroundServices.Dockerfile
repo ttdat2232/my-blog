@@ -6,17 +6,15 @@ WORKDIR /src
 COPY ["Src/MyBlog.Application/MyBlog.Application.csproj", "Src/MyBlog.Application/"]
 COPY ["Src/MyBlog.Core/MyBlog.Core.csproj", "Src/MyBlog.Core/"]
 COPY ["Src/MyBlog.Postgres/MyBlog.Postgres.csproj", "Src/MyBlog.Postgres/"]
-COPY ["Src/MyBlog.Auth/MyBlog.Auth.csproj", "Src/MyBlog.Auth/"]
-COPY ["Src/MyBlog.Jwt/MyBlog.Jwt.csproj", "Src/MyBlog.Jwt/"]
-RUN dotnet restore "Src/MyBlog.Auth/MyBlog.Auth.csproj"
+COPY ["Src/MyBlog.BackgroundServices/MyBlog.BackgroundServices.csproj", "Src/MyBlog.BackgroundServices/"]
 COPY . .
-WORKDIR "/src/Src/MyBlog.Auth"
-RUN dotnet build "MyBlog.Auth.csproj" -c Release -o /app/build
+WORKDIR "/src/Src/MyBlog.BackgroundServices"
+RUN dotnet build "MyBlog.BackgroundServices.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "MyBlog.Auth.csproj" -c Release -o /app/publish
+RUN dotnet publish "MyBlog.BackgroundServices.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "MyBlog.Auth.dll"]
+ENTRYPOINT ["dotnet", "MyBlog.BackgroundServices.dll"]

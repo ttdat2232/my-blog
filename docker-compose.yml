@@ -31,6 +31,22 @@ services:
     networks:
       - myblog-network
 
+  my-blog-background-services:
+    build:
+      context: .
+      dockerfile: ./Dockerfiles/BackgroundServices.Dockerfile 
+    ports:
+      - "5000:82"
+      - "5003:445"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Default=Host=db;Database=myblog;Username=postgres;Password=postgres
+    depends_on:
+      - my-blog-db
+    container_name: my-blog-background-services
+    networks:
+      - myblog-network
+
   my-blog-db:
     image: postgres:17.2-alpine3.21
     environment:
@@ -45,7 +61,7 @@ services:
       - myblog-network
     container_name: my-blog-db
 
-  redis:
+  my-blog-redis:
     image: redis:7.2-alpine
     ports:
       - "6379:6379"
@@ -55,9 +71,21 @@ services:
     networks:
       - myblog-network
 
+  my-blog-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    container_name: my-blog-rabbitmq
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/data
+    networks:
+      - myblog-network
+
 volumes:
   postgres_data:
   redis_data:
+  rabbitmq_data:
 
 networks:
   myblog-network:
