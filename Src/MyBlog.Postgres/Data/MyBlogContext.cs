@@ -6,8 +6,6 @@ namespace MyBlog.Postgres.Data;
 
 public class MyBlogContext : DbContext
 {
-    public DbSet<BlogAggregate> Blogs => Set<BlogAggregate>();
-
     public MyBlogContext(DbContextOptions<MyBlogContext> options)
         : base(options) { }
 

@@ -21,4 +21,12 @@ public interface IBlogService
         BaseId? newCategoryId,
         CancellationToken cancellationToken
     );
+
+    /// <summary>
+    /// Update view count for blog
+    /// </summary>
+    /// <param name="viewCounts">View count dictionary include blog id and number of count will be added</param>
+    /// <param name="cancellattionToken">Cancellation token</param>
+    /// <returns></returns>
+    Task UpdateViewCount(IDictionary<Guid, long> viewCounts, CancellationToken cancellationToken);
 }

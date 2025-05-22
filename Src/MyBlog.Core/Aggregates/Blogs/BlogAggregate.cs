@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using MyBlog.Core.Aggregates.Blogs.Events;
 using MyBlog.Core.Models;
 using MyBlog.Core.Primitives;
@@ -67,6 +68,10 @@ public sealed class BlogAggregate : AggregateRoot<BlogId>
             authorId
         );
 
+        if (publishDate.HasValue && publishDate.Value < DateTime.UtcNow)
+        {
+            return Result<BlogAggregate>.Failure(BlogErrors.InvalidPublishDate);
+        }
         var status = isDraft ? BlogStatus.Draft : BlogStatus.Active;
 
         var blog = new BlogAggregate(
@@ -139,5 +144,10 @@ public sealed class BlogAggregate : AggregateRoot<BlogId>
             removingComment.Delete();
             Log.Debug("a comment was removed");
         }
+    }
+
+    public void IncreaseView(long count)
+    {
+        ViewCount += count;
     }
 }

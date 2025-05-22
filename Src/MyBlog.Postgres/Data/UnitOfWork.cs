@@ -1,8 +1,9 @@
+using System.Reflection;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.Extensions.DependencyInjection;
 using MyBlog.Core.Primitives;
 using MyBlog.Core.Repositories;
 using MyBlog.Core.Repositories.Models;
+using MyBlog.Postgres.Data.Repositories;
 
 namespace MyBlog.Postgres.Data;
 
@@ -12,6 +13,7 @@ public sealed class UnitOfWork : IUnitOfWork
     private readonly Dictionary<(Type, Type), object> _repositories;
     private readonly Dictionary<string, IDbContextTransaction> _transactions;
     private bool _disposed;
+    private static readonly Dictionary<Type, ConstructorInfo> _constructorCache = new();
 
     public UnitOfWork(MyBlogContext context, IServiceProvider provider)
     {
@@ -19,6 +21,8 @@ public sealed class UnitOfWork : IUnitOfWork
         _repositories = new Dictionary<(Type, Type), object>();
         _transactions = new Dictionary<string, IDbContextTransaction>();
     }
+
+    public IBlogRepository BlogRepository => new CustomBlogRepository(_context);
 
     public async Task CommitAtTransactionAsync(
         TransactionInformation transactionInformation,
@@ -32,7 +36,7 @@ public sealed class UnitOfWork : IUnitOfWork
 
         ThrowIfDisposed();
 
-        if (!_transactions.TryGetValue(transactionInformation.Id, out var transaction))
+        if (!_transactions.ContainsKey(transactionInformation.Id))
         {
             throw new InvalidOperationException(
                 $"Transaction with ID {transactionInformation.Id} not found."
@@ -91,10 +95,19 @@ public sealed class UnitOfWork : IUnitOfWork
         }
 
         var repositoryType = typeof(Repository<,>).MakeGenericType(typeof(T), typeof(TId));
+        if (!_constructorCache.TryGetValue(repositoryType, out var constructor))
+        {
+            constructor = repositoryType.GetConstructor(new[] { typeof(MyBlogContext) });
+            if (constructor == null)
+            {
+                throw new InvalidOperationException(
+                    $"No suitable constructor found for {repositoryType}"
+                );
+            }
+            _constructorCache[repositoryType] = constructor;
+        }
 
-        var consturtor = repositoryType.GetConstructor([typeof(MyBlogContext)])!;
-
-        _repositories[key] = consturtor.Invoke([_context]);
+        _repositories[key] = constructor.Invoke(new object[] { _context });
         return (IRepository<T, TId>)_repositories[key];
     }
 

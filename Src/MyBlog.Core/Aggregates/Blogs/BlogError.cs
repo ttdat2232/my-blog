@@ -15,4 +15,8 @@ public static class BlogErrors
         400
     );
     public static readonly Error ActionOnBannedBlog = new("Action not allow with banned blog", 400);
+    public static readonly Error InvalidPublishDate = new(
+        "Publish date cannot be before the current time",
+        400
+    );
 }

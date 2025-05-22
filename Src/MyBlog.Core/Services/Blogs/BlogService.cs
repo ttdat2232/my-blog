@@ -19,6 +19,14 @@ public class BlogService(IUnitOfWork _unitOfWork) : IBlogService
         CancellationToken cancellationToken
     )
     {
+        Serilog.Log.Debug(
+            "Create blog with title: {Title}, authorId: {AuthorId}, categoryId: {CategoryId}, isDraft: {IsDraft}, publishDate: {PublishDate}",
+            title,
+            authorId,
+            categoryId,
+            isDraft,
+            publishDate
+        );
         var _userRepository = _unitOfWork.Repository<UserAggregate, UserId>();
         var _categoryRepository = _unitOfWork.Repository<CategoryAggregate, CategoryId>();
 
@@ -45,6 +53,19 @@ public class BlogService(IUnitOfWork _unitOfWork) : IBlogService
         return blogResult;
     }
 
+    public async Task UpdateViewCount(
+        IDictionary<Guid, long> viewCounts,
+        CancellationToken cancellationToken
+    )
+    {
+        Serilog.Log.Debug("Update view for blog with {Count} items", viewCounts?.Count ?? 0);
+        if (viewCounts == null)
+            return;
+        await _unitOfWork.BlogRepository.UpdateViewCount(
+            viewCounts.ToDictionary(view => BlogId.From(view.Key), view => view.Value)
+        );
+    }
+
     public async Task<Result<bool>> ValidateUpdateOperationAsync(
         BlogAggregate blog,
         BaseId requestUserId,
@@ -52,6 +73,14 @@ public class BlogService(IUnitOfWork _unitOfWork) : IBlogService
         CancellationToken cancellationToken
     )
     {
+        Serilog.Log.Debug(
+            "Validate blog for blogId: {BlogId}, requestUserId: {RequestUserId}, newCategoryId: {NewCategoryId}",
+            blog?.Id,
+            requestUserId,
+            newCategoryId
+        );
+        if (blog == null)
+            return Result<bool>.Failure(BlogErrors.NotBlogOwner);
         if (blog.AuthorId != requestUserId)
             return Result<bool>.Failure(BlogErrors.NotBlogOwner);
 

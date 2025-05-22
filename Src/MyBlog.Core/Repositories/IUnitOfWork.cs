@@ -17,6 +17,8 @@ public interface IUnitOfWork : IDisposable, IAsyncDisposable
         where TId : BaseId
         where T : Entity<TId>;
 
+    IBlogRepository BlogRepository { get; }
+
     /// <summary>
     /// Saves all pending changes asynchronously
     /// </summary>
