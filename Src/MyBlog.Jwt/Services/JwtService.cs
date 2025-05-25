@@ -123,6 +123,7 @@ public class JwtService : ITokenService
                 ValidateAudience = opts.IsValidateAudience,
                 ValidAudience = _jwtSettings.Audience,
                 ValidateLifetime = opts.IsValidateLifeTime,
+                ValidateSignatureLast = opts.IsValidateSignature,
                 ClockSkew = TimeSpan.Zero,
             };
 

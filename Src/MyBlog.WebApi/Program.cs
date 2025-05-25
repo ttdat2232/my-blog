@@ -1,4 +1,3 @@
-using Carter;
 using Microsoft.AspNetCore.Authentication;
 using MyBlog.Application;
 using MyBlog.Core;
@@ -16,17 +15,44 @@ builder.Services.AddMyBlogJwt(builder.Configuration);
 builder.Services.AddMyBlogRedis(builder.Configuration);
 builder.Services.AddMyBlogDatabase(builder.Configuration);
 
+var scheme = "Bearer";
 builder
     .Services.AddAuthentication()
-    .AddScheme<AuthenticationSchemeOptions, MyBlogAuthenticationHandler>("Bearer", null);
+    .AddScheme<AuthenticationSchemeOptions, MyBlogAuthenticationHandler>(scheme, null);
 
-// builder.Services.AddAuthorization(opts =>
-// {
-//     opts.AddPolicy("User", config => { });
-// });
+builder.Services.AddAuthorization(opts =>
+{
+    opts.AddPolicy(
+        "Authenticated",
+        policy =>
+        {
+            policy.AuthenticationSchemes.Add(scheme);
+            policy.RequireAuthenticatedUser();
+        }
+    );
+    opts.AddPolicy(
+        "Admin",
+        policy =>
+        {
+            policy.AuthenticationSchemes.Add(scheme);
+            policy.RequireAuthenticatedUser();
+            policy.RequireRole("admin");
+            policy.RequireClaim("role", "admin");
+        }
+    );
+    opts.AddPolicy(
+        "User",
+        policy =>
+        {
+            policy.AuthenticationSchemes.Add(scheme);
+            policy.RequireAuthenticatedUser();
+            policy.RequireRole("user");
+            policy.RequireClaim("role", "user");
+        }
+    );
+});
 
-builder.Services.AddCarter();
-
+builder.Services.AddControllers();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -34,11 +60,10 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseAuthentication();
 app.UseHttpsRedirection();
+app.UseAuthorization();
 
-// app.UseAuthentication();
-// app.UseAuthorization();
-
-app.MapCarter();
+app.MapControllers();
 
 await app.RunAsync();

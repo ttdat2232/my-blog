@@ -5,6 +5,7 @@ public class ValidationOption
     public bool IsValidateLifeTime { get; set; }
     public bool IsValidateAudience { get; set; }
     public bool IsValidateIssuer { get; set; }
+    public bool IsValidateSignature { get; set; }
 
     public static ValidationOption Default =>
         new()
@@ -12,5 +13,6 @@ public class ValidationOption
             IsValidateLifeTime = true,
             IsValidateAudience = true,
             IsValidateIssuer = true,
+            IsValidateSignature = true,
         };
 }
