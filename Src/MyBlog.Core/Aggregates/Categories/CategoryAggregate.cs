@@ -8,6 +8,7 @@ public sealed class CategoryAggregate : AggregateRoot<CategoryId>
         : base(id)
     {
         Name = name;
+        NormalizeName = name.ToLower();
         Description = description;
     }
 
@@ -16,4 +17,6 @@ public sealed class CategoryAggregate : AggregateRoot<CategoryId>
 
     public string Name { get; private set; }
     public string Description { get; private set; }
+
+    public string NormalizeName { get; private set; }
 }

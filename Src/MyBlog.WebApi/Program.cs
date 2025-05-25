@@ -18,12 +18,12 @@ builder.Services.AddMyBlogDatabase(builder.Configuration);
 
 builder
     .Services.AddAuthentication()
-    .AddScheme<AuthenticationSchemeOptions, MyBlogAuthenticationHandler>("MyBlogBearer", null);
+    .AddScheme<AuthenticationSchemeOptions, MyBlogAuthenticationHandler>("Bearer", null);
 
-builder.Services.AddAuthorization(opts =>
-{
-    opts.AddPolicy("User", config => { });
-});
+// builder.Services.AddAuthorization(opts =>
+// {
+//     opts.AddPolicy("User", config => { });
+// });
 
 builder.Services.AddCarter();
 
@@ -36,8 +36,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication();
-app.UseAuthorization();
+// app.UseAuthentication();
+// app.UseAuthorization();
 
 app.MapCarter();
 

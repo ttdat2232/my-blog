@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using MyBlog.Core.Aggregates.Blogs;
+using MyBlog.Core.Aggregates.Categories;
+using MyBlog.Core.Aggregates.Users;
 using MyBlog.Core.Primitives;
 
 namespace MyBlog.Postgres.Data.TableConfigurations;
@@ -57,6 +59,32 @@ public class BlogConfiguration : IEntityTypeConfiguration<BlogAggregate>
         builder.Property(e => e.IsDeleted).HasColumnName("is_deleted");
 
         builder.Property(blog => blog.PublishDate).HasColumnName("publish_date").IsRequired(false);
+
+        builder
+            .Property(blog => blog.CategoryId)
+            .HasColumnName("category_id")
+            .HasConversion(id => id.Value, value => CategoryId.From(value))
+            .IsRequired(false);
+
+        builder
+            .Property(blog => blog.AuthorId)
+            .HasColumnName("author_id")
+            .HasConversion(id => id.Value, value => UserId.From(value))
+            .IsRequired(false);
+
+        builder
+            .HasOne<CategoryAggregate>()
+            .WithMany()
+            .HasForeignKey(e => e.CategoryId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .HasOne<UserAggregate>()
+            .WithMany()
+            .HasForeignKey(e => e.AuthorId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Restrict);
 
         ConfigureComnentRelation(builder);
 

@@ -1,5 +1,6 @@
-using System.Security.Cryptography.X509Certificates;
 using MyBlog.Core.Aggregates.Blogs.Events;
+using MyBlog.Core.Aggregates.Categories;
+using MyBlog.Core.Aggregates.Users;
 using MyBlog.Core.Models;
 using MyBlog.Core.Primitives;
 using Serilog;
@@ -12,8 +13,8 @@ public sealed class BlogAggregate : AggregateRoot<BlogId>
         BlogId id,
         string title,
         string content,
-        BaseId authorId,
-        BaseId categoryId,
+        UserId authorId,
+        CategoryId categoryId,
         BlogStatus status,
         DateTime? publishDate,
         bool isPublish
@@ -42,8 +43,8 @@ public sealed class BlogAggregate : AggregateRoot<BlogId>
     public string Title { get; private set; }
     public string Content { get; private set; }
     public long ViewCount { get; private set; }
-    public BaseId AuthorId { get; private set; }
-    public BaseId CategoryId { get; private set; }
+    public UserId AuthorId { get; private set; }
+    public CategoryId CategoryId { get; private set; }
     public BlogStatus Status { get; private set; }
     public DateTime? PublishDate { get; private set; }
     public bool IsPublished { get; private set; }
@@ -55,8 +56,8 @@ public sealed class BlogAggregate : AggregateRoot<BlogId>
     public static Result<BlogAggregate> Create(
         string title,
         string content,
-        BaseId authorId,
-        BaseId categoryId,
+        Guid authorId,
+        Guid categoryId,
         bool isDraft,
         DateTime? publishDate
     )
@@ -78,8 +79,8 @@ public sealed class BlogAggregate : AggregateRoot<BlogId>
             BlogId.New(),
             title,
             content,
-            authorId,
-            categoryId,
+            UserId.From(authorId),
+            CategoryId.From(categoryId),
             status,
             publishDate,
             publishDate.HasValue
@@ -122,11 +123,11 @@ public sealed class BlogAggregate : AggregateRoot<BlogId>
         return Result<bool>.Success(true);
     }
 
-    public void ChangeCategory(BaseId newCategoryId)
+    public void ChangeCategory(Guid newCategoryId)
     {
         if (newCategoryId != CategoryId)
         {
-            CategoryId = newCategoryId;
+            CategoryId = CategoryId.From(newCategoryId);
         }
     }
 

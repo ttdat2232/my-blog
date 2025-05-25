@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MyBlog.Postgres.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MyBlog.Postgres.Migrations
 {
     [DbContext(typeof(MyBlogContext))]
-    partial class MyBlogContextModelSnapshot : ModelSnapshot
+    [Migration("20250524103856_AddAuthorAndCategoryIdForBlog")]
+    partial class AddAuthorAndCategoryIdForBlog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -29,11 +32,11 @@ namespace MyBlog.Postgres.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<Guid?>("AuthorId")
+                    b.Property<Guid>("AuthorId")
                         .HasColumnType("uuid")
                         .HasColumnName("author_id");
 
-                    b.Property<Guid?>("CategoryId")
+                    b.Property<Guid>("CategoryId")
                         .HasColumnType("uuid")
                         .HasColumnName("category_id");
 
@@ -92,10 +95,6 @@ namespace MyBlog.Postgres.Migrations
                         .HasColumnName("view_count");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AuthorId");
-
-                    b.HasIndex("CategoryId");
 
                     b.ToTable("blogs", (string)null);
                 });
@@ -174,53 +173,6 @@ namespace MyBlog.Postgres.Migrations
                     b.HasIndex("ParentCommentId");
 
                     b.ToTable("comments", (string)null);
-                });
-
-            modelBuilder.Entity("MyBlog.Core.Aggregates.Categories.CategoryAggregate", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<long?>("CreatedBy")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("description");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_deleted");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("name");
-
-                    b.Property<string>("NormalizeName")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("normalize_name");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<long?>("UpdatedBy")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("categories", (string)null);
                 });
 
             modelBuilder.Entity("MyBlog.Core.Aggregates.Clients.ClientAggregate", b =>
@@ -381,13 +333,13 @@ namespace MyBlog.Postgres.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValue(new DateTime(2025, 5, 25, 10, 31, 11, 16, DateTimeKind.Utc).AddTicks(5341))
+                        .HasDefaultValue(new DateTime(2025, 5, 24, 10, 38, 54, 520, DateTimeKind.Utc).AddTicks(961))
                         .HasColumnName("created_at");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValue(new DateTime(2025, 5, 25, 10, 31, 11, 16, DateTimeKind.Utc).AddTicks(6479))
+                        .HasDefaultValue(new DateTime(2025, 5, 24, 10, 38, 54, 520, DateTimeKind.Utc).AddTicks(2090))
                         .HasColumnName("updated_at");
 
                     b.HasKey("FollowerId", "FollowedId");
@@ -486,20 +438,6 @@ namespace MyBlog.Postgres.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("user_roles", (string)null);
-                });
-
-            modelBuilder.Entity("MyBlog.Core.Aggregates.Blogs.BlogAggregate", b =>
-                {
-                    b.HasOne("MyBlog.Core.Aggregates.Users.UserAggregate", null)
-                        .WithMany()
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("MyBlog.Core.Aggregates.Categories.CategoryAggregate", null)
-                        .WithMany()
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("MyBlog.Core.Aggregates.Blogs.BlogTag", b =>

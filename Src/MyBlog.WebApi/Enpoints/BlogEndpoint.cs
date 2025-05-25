@@ -29,11 +29,12 @@ public class BlogEndpoint : ICarterModule
     }
 
     private static async Task<IActionResult> GetBlogs(
-        [FromQuery] BlogParamQuery query,
+        // [FromQuery] BlogParamQuery query,
         ISender sender,
         CancellationToken cancellationToken
     )
     {
+        var query = new BlogParamQuery();
         var blogQuery = new GetBlogsQuery(
             query.Title,
             query.Status,

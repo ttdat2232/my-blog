@@ -20,8 +20,8 @@ public class CreateBlogCommandHandler(IBlogService _blogService, IUnitOfWork _un
         var blogResult = await _blogService.CreateBlogAsync(
             request.Title,
             request.Content,
-            BaseId.From(request.AuthorId),
-            BaseId.From(request.CategoryId),
+            request.AuthorId,
+            request.CategoryId,
             request.IsDraft,
             request.PublishDate,
             cancellationToken

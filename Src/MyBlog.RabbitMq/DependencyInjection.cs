@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+
+using MyBlog.Core.Services.Cache;
 using MyBlog.Core.Services.Messages;
 using MyBlog.RabbitMq.Configurations;
 
@@ -20,9 +22,10 @@ public static class DependencyInjection
 
             var configOpts = propvider.GetRequiredService<IOptions<RabbitMqConfiguration>>();
             var serializer = propvider.GetRequiredService<IMessageSerializer>();
+            var cacheService = propvider.GetRequiredService<ICacheService>();
             return messageBrokerType.ToLower() switch
             {
-                "rabbitmq" => new RabbitMqMessageBroker(serializer, configOpts),
+                "rabbitmq" => new RabbitMqMessageBroker(serializer, configOpts, cacheService),
                 _ => throw new ArgumentException($"Not support {messageBrokerType} at the moment"),
             };
         });

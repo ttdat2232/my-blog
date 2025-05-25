@@ -12,8 +12,8 @@ public class BlogService(IUnitOfWork _unitOfWork) : IBlogService
     public async Task<Result<BlogAggregate>> CreateBlogAsync(
         string title,
         string content,
-        BaseId authorId,
-        BaseId categoryId,
+        Guid authorId,
+        Guid categoryId,
         bool isDraft,
         DateTime? publishDate,
         CancellationToken cancellationToken
