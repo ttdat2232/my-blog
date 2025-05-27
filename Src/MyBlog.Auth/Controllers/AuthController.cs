@@ -60,12 +60,13 @@ public class AuthController(ISender sender) : Controller
     }
 
     [HttpGet("register")]
-    public IActionResult RegisterAsync()
+    public IActionResult RegisterAsync(string sessionId)
     {
-        return View("Register");
+        var registerRequest = new RegisterRequest("", "", "", sessionId);
+        return View(registerRequest);
     }
 
-    [HttpPost]
+    [HttpPost("register")]
     public async Task<IActionResult> RegisterAsync(
         RegisterRequest request,
         CancellationToken cancellationToken
@@ -75,6 +76,13 @@ public class AuthController(ISender sender) : Controller
             new RegisterCommand(request.Username, request.Email, request.Password),
             cancellationToken
         );
-        return result.ToActionResult();
+        if (result.IsFailure)
+            return View("register", request);
+        if (request.SessionId is null)
+            return RedirectToAction("Index", "Home");
+        return await LoginAsync(
+            new LoginRequest(request.Username, request.Password, request.SessionId),
+            cancellationToken
+        );
     }
 }

@@ -8,7 +8,7 @@
 
 <div class="login-container">
     <h2>Register</h2>
-    <form asp-action="Register" method="post" class="login-form">
+    <form method="post" class="login-form">
         <div class="form-group">
             @Html.LabelFor(m => m.Username, "Username")
             @Html.TextBoxFor(m => m.Username, new { @class = "form-control", placeholder = "Enter your username" })
@@ -21,6 +21,7 @@
             @Html.LabelFor(m => m.Password, "Password")
             @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "Enter your password" })
         </div>
+        @Html.HiddenFor(m => m.SessionId)
         <button type="submit" class="btn btn-primary">Register</button>
     </form>
     <div class="login-links">

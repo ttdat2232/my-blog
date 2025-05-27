@@ -28,8 +28,13 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseSession();
 app.MapCarter();
-app.MapControllers();
 app.UseStaticFiles();
-app.MapRazorPages().WithStaticAssets();
+app.MapControllers();
+app.MapControllerRoute(
+    "default",
+    "{controller=Home}/{action=Index}/{id?}",
+    new { controller = "Home", action = "Index" }
+);
+app.MapRazorPages();
 
 await app.RunAsync();

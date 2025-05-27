@@ -70,6 +70,10 @@ body {
   font-weight: 500;
   cursor: pointer;
   transition: background 0.2s;
+  -webkit-transition: background 0.2s;
+  -moz-transition: background 0.2s;
+  -ms-transition: background 0.2s;
+  -o-transition: background 0.2s;
 }
 .login-form .btn-primary:hover {
   background: #186dd6;

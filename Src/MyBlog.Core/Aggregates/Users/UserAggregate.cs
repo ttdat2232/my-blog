@@ -139,6 +139,16 @@ public sealed class UserAggregate : AggregateRoot<UserId>
         AddDomainEvent(new UserCreatedEvent(this));
     }
 
+    public void AddRole(RoleAggregate role)
+    {
+        if (role is null)
+            throw new ArgumentNullException(nameof(role));
+
+        if (_roles.Any(r => r.RoleId.Equals(role.Id)))
+            return;
+
+        _roles.Add(UserRole.From((Id, role.Id)));
+    }
     // EF Core require
 #pragma warning disable CS8618
     private UserAggregate()
