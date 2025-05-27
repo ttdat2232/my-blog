@@ -15,19 +15,19 @@ public sealed class UserAggregate : AggregateRoot<UserId>
     public string Password { get; private set; }
     public string? Avatar { get; private set; }
 
-    public IReadOnlyList<UserRole> Roles => _roles.AsReadOnly();
+    public IReadOnlyList<UserRole>? Roles => _roles?.AsReadOnly();
 
     /// <summary>
     /// Get users that followed by this user
     /// </summary>
     /// <returns></returns>
-    public IReadOnlyList<Subscription> Follows => _follows.AsReadOnly();
+    public IReadOnlyList<Subscription>? Follows => _follows?.AsReadOnly();
 
     /// <summary>
     /// Get users that followed this user
     /// </summary>
     /// <returns></returns>
-    public IReadOnlyList<Subscription> FollowedBy => _followedBy.AsReadOnly();
+    public IReadOnlyList<Subscription>? FollowedBy => _followedBy?.AsReadOnly();
 
     private readonly IList<UserRole> _roles;
     private readonly IList<Subscription> _follows;

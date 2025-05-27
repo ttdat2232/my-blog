@@ -37,7 +37,6 @@ builder.Services.AddAuthorization(opts =>
             policy.AuthenticationSchemes.Add(scheme);
             policy.RequireAuthenticatedUser();
             policy.RequireRole("admin");
-            policy.RequireClaim("role", "admin");
         }
     );
     opts.AddPolicy(
@@ -47,7 +46,6 @@ builder.Services.AddAuthorization(opts =>
             policy.AuthenticationSchemes.Add(scheme);
             policy.RequireAuthenticatedUser();
             policy.RequireRole("user");
-            policy.RequireClaim("role", "user");
         }
     );
 });

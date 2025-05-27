@@ -52,6 +52,8 @@ public class UserConfiguration : IEntityTypeConfiguration<UserAggregate>
 
         builder.Property(e => e.IsDeleted).HasColumnName("is_deleted");
 
+        builder.Ignore(e => e.Roles);
+
         // Configure many-to-many relationship with roles using join entity
         builder
             .HasMany<RoleAggregate>()
@@ -65,7 +67,7 @@ public class UserConfiguration : IEntityTypeConfiguration<UserAggregate>
                         .OnDelete(DeleteBehavior.Cascade),
                 left =>
                     left.HasOne<UserAggregate>()
-                        .WithMany(u => u.Roles)
+                        .WithMany("_roles")
                         .HasForeignKey(e => e.UserId)
                         .OnDelete(DeleteBehavior.Cascade),
                 join =>
@@ -102,14 +104,14 @@ public class UserConfiguration : IEntityTypeConfiguration<UserAggregate>
             .IsUnique();
 
         builder
-            .Navigation(nameof(UserAggregate.Roles))
-            .UsePropertyAccessMode(PropertyAccessMode.Field);
+            .Metadata.FindNavigation(nameof(UserAggregate.Roles))
+            ?.SetPropertyAccessMode(PropertyAccessMode.Field);
 
         builder
-            .Metadata.FindNavigation("_follows")
+            .Metadata.FindNavigation(nameof(UserAggregate.Follows))
             ?.SetPropertyAccessMode(PropertyAccessMode.Field);
         builder
-            .Metadata.FindNavigation("_followedBy")
+            .Metadata.FindNavigation(nameof(UserAggregate.FollowedBy))
             ?.SetPropertyAccessMode(PropertyAccessMode.Field);
     }
 }

@@ -134,6 +134,45 @@ public class Repository<T, TId> : IRepository<T, TId>
             .ContinueWith(t => t.Result.OfType<TMapped>());
     }
 
+    public async Task<IEnumerable<T>> GetAsync(
+        Expression<Func<T, bool>>? expression = null,
+        IEnumerable<Expression<Func<T, object>>>? includes = null,
+        IEnumerable<string>? includeStrings = null,
+        Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
+        int pageIndex = 0,
+        int pageSize = 10,
+        bool isTracked = false,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var query = isTracked ? _dbSet : _dbSet.AsNoTracking();
+
+        if (expression != null)
+            query = query.Where(expression);
+
+        if (orderBy != null)
+            query = orderBy(query);
+
+        if (includes != null && includes.Any())
+        {
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+        }
+        if (includeStrings != null && includeStrings.Any())
+        {
+            foreach (var includeString in includeStrings)
+            {
+                query = query.Include(includeString);
+            }
+        }
+
+        query = query.Skip(pageIndex * pageSize).Take(pageSize);
+
+        return await query.ToListAsync(cancellationToken);
+    }
+
     public async Task<TMapped?> GetOneAsync<TMapped>(
         Expression<Func<T, bool>> expression,
         Expression<Func<T, TMapped>> select,

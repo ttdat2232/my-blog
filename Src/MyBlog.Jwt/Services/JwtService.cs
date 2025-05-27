@@ -135,7 +135,9 @@ public class JwtService : ITokenService
             var jwtToken = (JwtSecurityToken)validatedToken;
 
             var response = new TokenValidationResponse(
-                principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value!,
+                principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+                    ?? principal.FindFirst("userId")?.Value
+                    ?? "",
                 principal.FindFirst(ClaimTypes.Name)?.Value!,
                 principal.FindFirst(JwtRegisteredClaimNames.Email)?.Value!,
                 principal

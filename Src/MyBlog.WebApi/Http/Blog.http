@@ -1,5 +1,22 @@
 @host = http://localhost:5005
+@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjMzkzYjhjYi1kMWQ2LTQ1NzUtOWM0MS1lODljYjMxODIyNzIiLCJlbWFpbCI6ImRhdmUyMjMyQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJkYXZlMjIzMiIsInVzZXJJZCI6ImMzOTNiOGNiLWQxZDYtNDU3NS05YzQxLWU4OWNiMzE4MjI3MiIsImp0aSI6IjRlMmJjNWRkLWQxM2EtNGQ2OS1iNDY5LTNmYzI0YTk1OGY4MCIsImV4cCI6MTc1MDc2NTcxMCwiaXNzIjoiTXlCbG9nLkFwaSIsImF1ZCI6Ik15QmxvZy5DbGllbnQifQ.yR8931JTghuL3AXRyfv11GJhD5UUtEy_4LthAYbqoss
 
 ### Get Blogs
 GET {{host}}/api/blogs
 Content-Type: application/json
+Authorization: {{token}} 
+
+
+### Create blos
+POST {{host}}/api/blogs
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+  "title": "The Evolution of Basketball: From Peach Baskets to Modern Arenas",
+  "content": "When Dr. James Naismith invented basketball in 1891, he could hardly have imagined how his simple game would evolve into the global phenomenon it is today. Originally played with peach baskets and a soccer ball, the sport has transformed dramatically over the past century.\n\nModern basketball features high-flying athletes, three-point shooters, and sophisticated offensive and defensive strategies. The NBA has become a multi-billion dollar industry, showcasing the world's greatest talents like LeBron James, Stephen Curry, and Giannis Antetokounmpo.\n\nThe game continues to evolve, with analytics and technology playing an increasingly important role in how teams approach both player development and game strategy.",
+  "status": 1,
+  "categoryId": "e48a5154-6ba2-4555-9b9c-1dfce3d0bd55",
+  "publishDate": "2025-05-28T10:00:00Z",
+  "isDraft": false
+}

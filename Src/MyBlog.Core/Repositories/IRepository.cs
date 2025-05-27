@@ -45,6 +45,16 @@ public interface IRepository<T, TId>
         bool isTracked = false,
         CancellationToken cancellationToken = default
     );
+    Task<IEnumerable<T>> GetAsync(
+        Expression<Func<T, bool>>? expression = null,
+        IEnumerable<Expression<Func<T, object>>>? includes = null,
+        IEnumerable<string> includeStrings = null,
+        Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
+        int pageIndex = 0,
+        int pageSize = 10,
+        bool isTracked = false,
+        CancellationToken cancellationToken = default
+    );
     Task<IEnumerable<TMapped>> GetAsync<TMapped>(
         ISpecification<T> specification,
         CancellationToken cancellationToken = default
