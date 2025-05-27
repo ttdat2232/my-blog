@@ -1,5 +1,6 @@
 using MyBlog.Core.Primitives;
 using MyBlog.Core.Repositories.Models;
+using MyBlog.Core.Services.Roles;
 
 namespace MyBlog.Core.Repositories;
 
@@ -8,6 +9,9 @@ namespace MyBlog.Core.Repositories;
 /// </summary>
 public interface IUnitOfWork : IDisposable, IAsyncDisposable
 {
+    IBlogRepository BlogRepository { get; }
+    IRoleRepository RoleRepository { get; }
+
     /// <summary>
     /// Gets the repository for the specified entity type
     /// </summary>
@@ -16,8 +20,6 @@ public interface IUnitOfWork : IDisposable, IAsyncDisposable
     IRepository<T, TId> Repository<T, TId>()
         where TId : BaseId
         where T : Entity<TId>;
-
-    IBlogRepository BlogRepository { get; }
 
     /// <summary>
     /// Saves all pending changes asynchronously

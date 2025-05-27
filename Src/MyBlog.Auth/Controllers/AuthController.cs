@@ -40,7 +40,7 @@ public class AuthController(ISender sender) : Controller
         return View(new LoginRequest("", "", HttpContext.Session.Id));
     }
 
-    [HttpPost]
+    [HttpPost("login")]
     public async Task<IActionResult> LoginAsync(
         LoginRequest request,
         CancellationToken cancellationToken

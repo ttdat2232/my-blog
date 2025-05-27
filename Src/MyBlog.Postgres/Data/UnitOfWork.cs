@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using MyBlog.Core.Primitives;
 using MyBlog.Core.Repositories;
 using MyBlog.Core.Repositories.Models;
+using MyBlog.Core.Services.Roles;
 using MyBlog.Postgres.Data.Repositories;
 
 namespace MyBlog.Postgres.Data;
@@ -23,6 +24,7 @@ public sealed class UnitOfWork : IUnitOfWork
     }
 
     public IBlogRepository BlogRepository => new CustomBlogRepository(_context);
+    public IRoleRepository RoleRepository => new CustomRoleRepository(_context);
 
     public async Task CommitAtTransactionAsync(
         TransactionInformation transactionInformation,

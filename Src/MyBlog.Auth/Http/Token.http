@@ -1,5 +1,5 @@
 @host = http://localhost:5295
 ### Validate
 
-GET {{host}}/api/token?authorizationCode=&veriferCode=
+GET {{host}}/api/token?authorizationCode=d7eb08f3b3a84fbbb6b616ca10c41a1e7d40d4a851c2452982da37b01f24e11a&veriferCode=8cwruwpcbsbqhunvk7je403a70jh0xgjio03fu2oqt9k6w5f58xgg6r0s2pg8ued
 Content-Type: application/json

@@ -17,11 +17,17 @@ public class JwtService : ITokenService
 {
     private readonly JwtSettings _jwtSettings;
     private readonly ITokenRepository _tokenRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public JwtService(IOptions<JwtSettings> jwtSettings, ITokenRepository tokenRepository)
+    public JwtService(
+        IOptions<JwtSettings> jwtSettings,
+        ITokenRepository tokenRepository,
+        IUnitOfWork unitOfWork
+    )
     {
         _jwtSettings = jwtSettings.Value;
         _tokenRepository = tokenRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result<TokenResponse>> GenerateTokenAsync(
@@ -40,7 +46,15 @@ public class JwtService : ITokenService
                 new("userId", userId.ToString()),
                 new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
-
+            var roleResult = await _unitOfWork.RoleRepository.GetRolesAsync(userId);
+            if (roleResult.IsSuccess)
+            {
+                foreach (var role in roleResult.Data)
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, role));
+                    claims.Add(new Claim("role", role));
+                }
+            }
             var signingCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret)),
                 SecurityAlgorithms.HmacSha256
@@ -134,6 +148,11 @@ public class JwtService : ITokenService
             );
             var jwtToken = (JwtSecurityToken)validatedToken;
 
+            var claims = new Dictionary<string, string>();
+            foreach (var claim in jwtToken.Claims)
+            {
+                claims[claim.Type] = claim.Value;
+            }
             var response = new TokenValidationResponse(
                 principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
                     ?? principal.FindFirst("userId")?.Value
@@ -144,7 +163,7 @@ public class JwtService : ITokenService
                     .Claims.Where(x => x.Type == ClaimTypes.Role)
                     .Select(x => x.Value)
                     .ToList(),
-                principal.Claims.ToDictionary(x => x.Type, x => x.Value),
+                claims,
                 jwtToken.ValidTo
             );
 
