@@ -14,7 +14,6 @@ public sealed class UnitOfWork : IUnitOfWork
     private readonly Dictionary<(Type, Type), object> _repositories;
     private readonly Dictionary<string, IDbContextTransaction> _transactions;
     private bool _disposed;
-    private static readonly Dictionary<Type, ConstructorInfo> _constructorCache = new();
 
     public UnitOfWork(MyBlogContext context, IServiceProvider provider)
     {
@@ -96,20 +95,8 @@ public sealed class UnitOfWork : IUnitOfWork
             return (IRepository<T, TId>)repository;
         }
 
-        var repositoryType = typeof(Repository<,>).MakeGenericType(typeof(T), typeof(TId));
-        if (!_constructorCache.TryGetValue(repositoryType, out var constructor))
-        {
-            constructor = repositoryType.GetConstructor(new[] { typeof(MyBlogContext) });
-            if (constructor == null)
-            {
-                throw new InvalidOperationException(
-                    $"No suitable constructor found for {repositoryType}"
-                );
-            }
-            _constructorCache[repositoryType] = constructor;
-        }
-
-        _repositories[key] = constructor.Invoke(new object[] { _context });
+        var repo = new Repository<T, TId>(_context);
+        _repositories[key] = repo;
         return (IRepository<T, TId>)_repositories[key];
     }
 
