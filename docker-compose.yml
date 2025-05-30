@@ -2,7 +2,7 @@ services:
   my-blog-api:
     build:
       context: .
-      dockerfile: ./Dockerfiles/Auth.Dockerfile
+      dockerfile: ./Dockerfiles/WebApi.Dockerfile
     ports:
       - "5000:80"
       - "5001:443"

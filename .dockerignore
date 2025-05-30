@@ -279,7 +279,13 @@ tools/Cake.CoreCLR
 tools
 .dotnet
 Dockerfile
+.Microsoft.DotNet.ImageBuilder
 
 # .env file contains default environment variables for docker
 .env
 .git/
+
+# Build folder
+**/bin
+**/obj
+**/out
