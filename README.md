@@ -12,6 +12,7 @@ A modern blog application built with .NET 9, implementing clean architecture pri
   - **MyBlog.Jwt** - JWT authentication/authorization components
   - **MyBlog.Redis** - Distributed caching implementation
   - **MyBlog.RabbitMq** - Message broker implementation for async communication
+  - **MyBlog.Email** - Email service implementation (SMTP configuration, sending emails)
 - **Presentation**
   - **MyBlog.WebApi** - Primary API endpoints and configuration
   - **MyBlog.Auth** - Authentication service
@@ -28,6 +29,7 @@ A modern blog application built with .NET 9, implementing clean architecture pri
 - JWT Authentication
 - Carter for minimal APIs
 - Docker containerization
+- SMTP Email Service
 
 ## Prerequisites
 
@@ -52,6 +54,7 @@ cd ./my-blog
    - Redis connection
    - RabbitMQ settings
    - JWT configuration
+   - SMTP settings for email
 
 3. Run database migrations
 
@@ -64,6 +67,7 @@ dotnet ef database update -p ./Src/MyBlog.Postgres -s ./Src/MyBlog.WebApi
    - PostgreSQL
    - Redis
    - RabbitMQ
+   - SMTP server (for email sending)
 
 5. Run the applications:
 
@@ -101,6 +105,7 @@ This will start:
 - PostgreSQL database
 - Redis cache server
 - RabbitMQ message broker
+- SMTP email service (for sending emails)
 
 The services will be available at:
 
@@ -128,6 +133,7 @@ docker-compose down
 - Domain-Driven Design principles
 - Background job processing
 - Docker containerization
+- Email sending capabilities
 
 ## Architecture
 
@@ -141,6 +147,7 @@ The solution follows Clean Architecture principles with distributed system patte
   - Redis - Distributed caching implementation
   - RabbitMQ - Message broker for async operations
   - JWT - Authentication/authorization services
+  - Email - SMTP email sending service
 - **Presentation Layer**
   - WebApi - Primary API endpoints
   - Auth - Authentication service
@@ -166,6 +173,12 @@ The solution follows Clean Architecture principles with distributed system patte
   - Event-driven architecture
   - Dead letter queues
   - Message retry policies
+
+- **Email (SMTP)**
+
+  - Email sending service
+  - SMTP configuration via `MyBlog.Email`
+  - Supports HTML and plain text emails, CC/BCC, and async sending
 
 - **Docker**
   - Containerized services
