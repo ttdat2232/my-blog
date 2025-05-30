@@ -7,7 +7,10 @@
   <ItemGroup>
     <ProjectReference Include="..\MyBlog.Postgres\MyBlog.Postgres.csproj" />
     <ProjectReference Include="..\MyBlog.Redis\MyBlog.Redis.csproj" />
+    <ProjectReference Include="..\MyBlog.Email\MyBlog.Email.csproj" />
     <ProjectReference Include="..\MyBlog.Application\MyBlog.Application.csproj" />
+    <ProjectReference Include="..\MyBlog.Jwt\MyBlog.Jwt.csproj" />
+    <ProjectReference Include="..\MyBlog.RabbitMq\MyBlog.RabbitMq.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="appsettings.json">

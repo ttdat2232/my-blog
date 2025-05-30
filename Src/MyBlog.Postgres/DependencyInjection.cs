@@ -23,28 +23,46 @@ public static class DependencyInjection
             config.TimeOutInMs = databaseConfig.TimeOutInMs;
         });
 
-        var connectionString = configuration.GetConnectionString("Default") ?? "";
-        services.AddDbContext<MyBlogContext>(optionsBuilder =>
+        var interceptors = typeof(DependencyInjection)
+            .Assembly.GetTypes()
+            .Where(t =>
+                t.IsClass && !t.IsAbstract && t.IsAssignableTo(typeof(ISaveChangesInterceptor))
+            )
+            .ToList();
+        foreach (var interceptor in interceptors)
         {
-            optionsBuilder.ConfigureWarnings(warnings =>
-                warnings.Ignore(RelationalEventId.PendingModelChangesWarning)
-            );
-            optionsBuilder.UseNpgsql(
-                connectionString,
-                databaseOpts =>
-                {
-                    databaseOpts.EnableRetryOnFailure();
-                    databaseOpts.CommandTimeout(databaseConfig.TimeOutInMs);
-                }
-            );
-            optionsBuilder.LogTo(
-                Log.Information,
-                Microsoft.Extensions.Logging.LogLevel.Information
-            );
+            services.AddScoped(interceptor);
+        }
+
+        var connectionString = configuration.GetConnectionString("Default") ?? "";
+        services.AddDbContext<MyBlogContext>(
+            (sp, optionsBuilder) =>
+            {
+                optionsBuilder.AddInterceptors(
+                    interceptors.Select(interceptor =>
+                        (IInterceptor)sp.GetRequiredService(interceptor)
+                    )
+                );
+                optionsBuilder.ConfigureWarnings(warnings =>
+                    warnings.Ignore(RelationalEventId.PendingModelChangesWarning)
+                );
+                optionsBuilder.UseNpgsql(
+                    connectionString,
+                    databaseOpts =>
+                    {
+                        databaseOpts.EnableRetryOnFailure();
+                        databaseOpts.CommandTimeout(databaseConfig.TimeOutInMs);
+                    }
+                );
+                optionsBuilder.LogTo(
+                    Log.Information,
+                    Microsoft.Extensions.Logging.LogLevel.Information
+                );
 #if DEBUG
-            optionsBuilder.EnableSensitiveDataLogging();
+                optionsBuilder.EnableSensitiveDataLogging();
 #endif
-        });
+            }
+        );
 
         services.AddScoped(typeof(IRepository<,>), typeof(Repository<,>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();

@@ -13,10 +13,10 @@ Content-Type: application/json
 Authorization: {{token}}
 
 {
-  "title": "The Evolution of Basketball: From Peach Baskets to Modern Arenas",
-  "content": "When Dr. James Naismith invented basketball in 1891, he could hardly have imagined how his simple game would evolve into the global phenomenon it is today. Originally played with peach baskets and a soccer ball, the sport has transformed dramatically over the past century.\n\nModern basketball features high-flying athletes, three-point shooters, and sophisticated offensive and defensive strategies. The NBA has become a multi-billion dollar industry, showcasing the world's greatest talents like LeBron James, Stephen Curry, and Giannis Antetokounmpo.\n\nThe game continues to evolve, with analytics and technology playing an increasingly important role in how teams approach both player development and game strategy.",
+  "title": "The Evolution of Modern Soccer Tactics",
+  "content": "Modern soccer tactics have undergone significant changes in recent decades, revolutionizing how the game is played. From the traditional 4-4-2 formation to more fluid systems like tiki-taka and gegenpress, tactical innovation continues to shape the sport.\n\nKey developments include the rise of the false nine position, high-pressing strategies, and possession-based play. Managers like Pep Guardiola and Jurgen Klopp have popularized distinct tactical approaches that have influenced teams worldwide.\n\nThe role of data analytics has also become crucial in tactical planning. Teams now use advanced statistics and performance metrics to optimize their strategies and player positioning. This scientific approach has added a new dimension to the beautiful game.",
   "status": 1,
   "categoryId": "e48a5154-6ba2-4555-9b9c-1dfce3d0bd55",
-  "publishDate": "2025-05-28T10:00:00Z",
+  "publishDate": "2025-05-31T09:30:00Z",
   "isDraft": false
 }

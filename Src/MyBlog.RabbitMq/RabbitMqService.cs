@@ -226,7 +226,7 @@ public class RabbitMqMessageBroker : IMessageBroker
         var properties = new BasicProperties();
         properties.Persistent = persistent;
         properties.MessageId = message.Metadata.MessageId ?? Guid.NewGuid().ToString();
-        properties.CorrelationId = message.Metadata.CorrelationId;
+        properties.CorrelationId = message.Metadata.CorrelationId ?? GerateCorrelationId();
         properties.Type = message.Metadata.MessageType ?? typeof(T).Name;
         properties.Timestamp = new AmqpTimestamp(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
         properties.Headers = new Dictionary<string, object?>();
@@ -424,4 +424,7 @@ public class RabbitMqMessageBroker : IMessageBroker
             Serilog.Log.Error(ex, "Error disposing RabbitMQ connection asynchronously");
         }
     }
+
+    private static string GerateCorrelationId() =>
+        $"{Guid.NewGuid()}-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
 }

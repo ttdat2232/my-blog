@@ -2,7 +2,7 @@ using MediatR;
 
 namespace MyBlog.Core.Primitives;
 
-public abstract class DomainEvent : INotification
+public record DomainEvent : INotification
 {
     protected DomainEvent()
     {

@@ -23,11 +23,11 @@ public class PublishDomainEventInterceptor(IPublisher _publisher) : SaveChangesI
     private async Task PublishDomainEvent(DbContext context)
     {
         var domainEvents = context
-            .ChangeTracker.Entries<Entity<object>>()
+            .ChangeTracker.Entries<IEntity>()
             .Select(e => e.Entity)
             .SelectMany(entity =>
             {
-                List<DomainEvent> domainEvents = (List<DomainEvent>)entity.DomainEvents;
+                var domainEvents = entity.DomainEvents.ToList();
                 entity.ClearDomainEvent();
                 return domainEvents;
             });

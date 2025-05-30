@@ -36,6 +36,11 @@ public interface IRepository<T, TId>
         CancellationToken cancellationToken = default
     );
 
+    Task<IEnumerable<TMapped>> GetAllAsync<TMapped>(
+        Expression<Func<T, TMapped>> select,
+        Expression<Func<T, bool>>? expression = null,
+        CancellationToken cancellationToken = default
+    );
     Task<IEnumerable<TMapped>> GetAsync<TMapped>(
         Expression<Func<T, TMapped>> select,
         Expression<Func<T, bool>>? expression = null,

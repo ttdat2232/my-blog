@@ -1,6 +1,6 @@
 namespace MyBlog.Core.Primitives;
 
-public abstract class Entity<T> : AutditableEntity, IEquatable<Entity<T>>
+public abstract class Entity<T> : AutditableEntity, IEquatable<Entity<T>>, IEntity
 {
     protected Entity(T id)
     {
@@ -14,6 +14,7 @@ public abstract class Entity<T> : AutditableEntity, IEquatable<Entity<T>>
     public bool IsDeleted { get; private set; }
 
     public IEnumerable<DomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
     private readonly IList<DomainEvent> _domainEvents;
     private readonly T _id;
 

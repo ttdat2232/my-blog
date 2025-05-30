@@ -5,7 +5,7 @@ public class MessageMetadata
     /// <summary>
     /// Unique identifier for the message.
     /// </summary>
-    public string MessageId { get; set; } = null!;
+    public string? MessageId { get; set; }
 
     /// <summary>
     /// Timestamp when the message was created.
@@ -15,12 +15,12 @@ public class MessageMetadata
     /// <summary>
     /// Type of the message.
     /// </summary>
-    public string MessageType { get; set; } = null!;
+    public string? MessageType { get; set; }
 
     /// <summary>
     /// Correlation ID for tracing related messages.
     /// </summary>
-    public string CorrelationId { get; set; } = null!;
+    public string? CorrelationId { get; set; }
 
     /// <summary>
     /// Additional headers or properties.

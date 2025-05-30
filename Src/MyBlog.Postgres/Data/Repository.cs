@@ -69,6 +69,20 @@ public class Repository<T, TId> : IRepository<T, TId>
         return result.AsEnumerable();
     }
 
+    public async Task<IEnumerable<TMapped>> GetAllAsync<TMapped>(
+        Expression<Func<T, TMapped>> select,
+        Expression<Func<T, bool>>? expression = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var query = _dbSet.AsQueryable();
+        if (expression != null)
+        {
+            query = query.Where(expression);
+        }
+        return await query.Select(select).ToListAsync(cancellationToken);
+    }
+
     public async Task<IEnumerable<TMapped>> GetAsync<TMapped>(
         Expression<Func<T, TMapped>> select,
         Expression<Func<T, bool>>? expression = null,

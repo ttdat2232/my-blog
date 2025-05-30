@@ -15,9 +15,10 @@ public static class DependencyInjection
     )
     {
         services.Configure<RabbitMqConfiguration>(configuration.GetSection("MessageBroker"));
+        services.AddSingleton<IMessageSerializer, MessageSerializer>();
         services.AddSingleton<IMessageBroker>(propvider =>
         {
-            var messageBrokerType = configuration["MessageBroker:Type"]!;
+            var messageBrokerType = configuration["MessageBroker:Type"]!.ToLower();
 
             var configOpts = propvider.GetRequiredService<IOptions<RabbitMqConfiguration>>();
             var serializer = propvider.GetRequiredService<IMessageSerializer>();

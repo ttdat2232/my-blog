@@ -9,15 +9,13 @@ public class MessageSerializer : IMessageSerializer
 {
     private readonly JsonSerializerOptions _serializerOpts;
 
-    public MessageSerializer(JsonSerializerOptions serializerOpts)
+    public MessageSerializer()
     {
-        _serializerOpts =
-            serializerOpts
-            ?? new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            };
+        _serializerOpts = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        };
     }
 
     public T? Deserialize<T>(byte[] data)
@@ -28,7 +26,7 @@ public class MessageSerializer : IMessageSerializer
         }
 
         var json = Encoding.UTF8.GetString(data);
-        return JsonSerializer.Deserialize<T>(json);
+        return JsonSerializer.Deserialize<T>(json, _serializerOpts);
     }
 
     public byte[] Serialize<T>(T data)
