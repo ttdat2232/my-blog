@@ -13,6 +13,7 @@
     <ProjectReference Include="..\MyBlog.Application\MyBlog.Application.csproj" />
     <ProjectReference Include="..\MyBlog.Postgres\MyBlog.Postgres.csproj" />
     <ProjectReference Include="..\MyBlog.Jwt\MyBlog.Jwt.csproj" />
+    <ProjectReference Include="..\MyBlog.RabbitMq\MyBlog.RabbitMq.csproj" />
     <ProjectReference Include="..\MyBlog.Redis\MyBlog.Redis.csproj" />
   </ItemGroup>
   <ItemGroup>

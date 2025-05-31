@@ -15,7 +15,7 @@ public class Repository<T, TId> : IRepository<T, TId>
         _dbSet = context.Set<T>();
     }
 
-    public async Task AddAsync(T entity, CancellationToken cancellationToken = default)
+    public virtual async Task AddAsync(T entity, CancellationToken cancellationToken = default)
     {
         await _dbSet.AddAsync(entity, cancellationToken);
     }
@@ -28,7 +28,7 @@ public class Repository<T, TId> : IRepository<T, TId>
         await _dbSet.AddRangeAsync(entities, cancellationToken);
     }
 
-    public Task<int> CountAsync(
+    public virtual Task<int> CountAsync(
         Expression<Func<T, bool>>? expression = null,
         CancellationToken cancellationToken = default
     )
@@ -38,13 +38,13 @@ public class Repository<T, TId> : IRepository<T, TId>
             : _dbSet.CountAsync(expression, cancellationToken);
     }
 
-    public Task DeleteAsync(T entity, CancellationToken cancellationToken = default)
+    public virtual Task DeleteAsync(T entity, CancellationToken cancellationToken = default)
     {
         _dbSet.Remove(entity);
         return Task.CompletedTask;
     }
 
-    public Task<T?> FindBy(
+    public virtual Task<T?> FindBy(
         Expression<Func<T, bool>> expression,
         CancellationToken cancellationToken = default
     )
@@ -52,12 +52,12 @@ public class Repository<T, TId> : IRepository<T, TId>
         return _dbSet.FirstOrDefaultAsync(expression, cancellationToken);
     }
 
-    public Task<T?> FindById(TId id, CancellationToken cancellationToken = default)
+    public virtual Task<T?> FindById(TId id, CancellationToken cancellationToken = default)
     {
         return _dbSet.FindAsync([id], cancellationToken).AsTask();
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync(
+    public virtual async Task<IEnumerable<T>> GetAllAsync(
         Expression<Func<T, bool>>? expression = null,
         CancellationToken cancellationToken = default
     )
@@ -69,7 +69,7 @@ public class Repository<T, TId> : IRepository<T, TId>
         return result.AsEnumerable();
     }
 
-    public async Task<IEnumerable<TMapped>> GetAllAsync<TMapped>(
+    public virtual async Task<IEnumerable<TMapped>> GetAllAsync<TMapped>(
         Expression<Func<T, TMapped>> select,
         Expression<Func<T, bool>>? expression = null,
         CancellationToken cancellationToken = default
@@ -83,7 +83,7 @@ public class Repository<T, TId> : IRepository<T, TId>
         return await query.Select(select).ToListAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<TMapped>> GetAsync<TMapped>(
+    public virtual async Task<IEnumerable<TMapped>> GetAsync<TMapped>(
         Expression<Func<T, TMapped>> select,
         Expression<Func<T, bool>>? expression = null,
         Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
@@ -106,7 +106,7 @@ public class Repository<T, TId> : IRepository<T, TId>
         return await query.Select(select).ToListAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<TMapped>> GetAsync<TMapped>(
+    public virtual async Task<IEnumerable<TMapped>> GetAsync<TMapped>(
         ISpecification<T> specification,
         CancellationToken cancellationToken = default
     )
@@ -148,7 +148,7 @@ public class Repository<T, TId> : IRepository<T, TId>
             .ContinueWith(t => t.Result.OfType<TMapped>());
     }
 
-    public async Task<IEnumerable<T>> GetAsync(
+    public virtual async Task<IEnumerable<T>> GetAsync(
         Expression<Func<T, bool>>? expression = null,
         IEnumerable<Expression<Func<T, object>>>? includes = null,
         IEnumerable<string>? includeStrings = null,
@@ -187,7 +187,7 @@ public class Repository<T, TId> : IRepository<T, TId>
         return await query.ToListAsync(cancellationToken);
     }
 
-    public async Task<TMapped?> GetOneAsync<TMapped>(
+    public virtual async Task<TMapped?> GetOneAsync<TMapped>(
         Expression<Func<T, bool>> expression,
         Expression<Func<T, TMapped>> select,
         CancellationToken cancellationToken = default
@@ -196,7 +196,7 @@ public class Repository<T, TId> : IRepository<T, TId>
         return await _dbSet.Where(expression).Select(select).FirstOrDefaultAsync(cancellationToken);
     }
 
-    public Task<bool> IsExisted(
+    public virtual Task<bool> IsExisted(
         Expression<Func<T, bool>> expression,
         CancellationToken cancellationToken = default
     )
@@ -204,12 +204,15 @@ public class Repository<T, TId> : IRepository<T, TId>
         return _dbSet.AnyAsync(expression, cancellationToken);
     }
 
-    public async Task<bool> IsExistedAsync(TId id, CancellationToken cancellationToken = default)
+    public virtual async Task<bool> IsExistedAsync(
+        TId id,
+        CancellationToken cancellationToken = default
+    )
     {
         return await _dbSet.FindAsync([id], cancellationToken) != null;
     }
 
-    public Task UpdateAsync(T entity, CancellationToken cancellationToken = default)
+    public virtual Task UpdateAsync(T entity, CancellationToken cancellationToken = default)
     {
         _dbSet.Update(entity);
         return Task.CompletedTask;

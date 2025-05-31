@@ -1,3 +1,4 @@
+using MyBlog.Core.Aggregates.Blogs.Events;
 using MyBlog.Core.Aggregates.Users;
 using MyBlog.Core.Primitives;
 
@@ -13,13 +14,19 @@ public class Comment : Entity<BaseId>
     private readonly IList<Comment> _childrenComment;
 
     public static Comment Create(
-        BaseId blogId,
+        Guid blogId,
         string content,
-        BaseId authorId,
-        BaseId? parentCommentId = null
+        Guid authorId,
+        Guid? parentCommentId = null
     )
     {
-        return new Comment(BaseId.New(), blogId, content, authorId, parentCommentId);
+        return new Comment(
+            BaseId.New(),
+            BlogId.From(blogId),
+            content,
+            UserId.From(authorId),
+            parentCommentId is not null ? BaseId.From(parentCommentId.Value) : null
+        );
     }
 
     public void Update(string content)
@@ -38,12 +45,18 @@ public class Comment : Entity<BaseId>
         : base(default) { }
 #pragma warning restore CS8618, CS8625
 
-    private Comment(BaseId id, Guid blogId, string content, Guid authorId, BaseId? parentCommentId)
+    private Comment(
+        BaseId id,
+        BlogId blogId,
+        string content,
+        UserId authorId,
+        BaseId? parentCommentId
+    )
         : base(id)
     {
-        BlogId = BlogId.From(blogId);
+        BlogId = blogId;
         Content = content;
-        AuthorId = UserId.From(authorId);
+        AuthorId = authorId;
         ParentCommentId = parentCommentId;
         _childrenComment = new List<Comment>();
     }

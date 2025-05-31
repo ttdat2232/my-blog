@@ -37,7 +37,11 @@ public sealed class BlogAggregate : AggregateRoot<BlogId>
     // EF core require
 #pragma warning disable CS8618, CS8625
     private BlogAggregate()
-        : base(default) { }
+        : base(default)
+    {
+        _tags = new List<BlogTag>();
+        _comments = new List<Comment>();
+    }
 #pragma warning restore CS8618, CS8625
 
     public string Title { get; private set; }
@@ -131,9 +135,10 @@ public sealed class BlogAggregate : AggregateRoot<BlogId>
         }
     }
 
-    public void AddComment(string content, BaseId authorId, BaseId? parentId = null)
+    public void AddComment(string content, Guid authorId, Guid? parentId = null)
     {
         var comment = Comment.Create(Id, content, authorId, parentId);
+        AddDomainEvent(new BlogCommentAddedEvent(Id, comment.AuthorId, comment.Content));
         _comments.Add(comment);
         Log.Debug("New comment was added");
     }

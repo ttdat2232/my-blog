@@ -4,6 +4,7 @@ namespace MyBlog.Core.Aggregates.Blogs;
 
 public static class BlogErrors
 {
+    public static readonly Error NotFoundBlog = new("Blog is not found", 404);
     public static readonly Error PublishDraft = new("Not allow to publish draft blog", 400);
 
     public static readonly Error AlreadyPublish = new("Blog was already published", 400);

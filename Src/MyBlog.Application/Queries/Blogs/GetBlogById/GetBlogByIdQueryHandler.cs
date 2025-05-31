@@ -19,26 +19,16 @@ public class GetBlogByIdQueryHandler : IRequestHandler<GetBlogByIdQuery, Result<
         CancellationToken cancellationToken
     )
     {
-        var blog = await _unitOfWork
-            .Repository<BlogAggregate, BlogId>()
-            .GetOneAsync(
-                b => b.Id == request.Id,
-                b => new BlogResponse(
-                    b.Id,
-                    b.Title,
-                    b.Content,
-                    "TODO: Get Author Name", // You'll need to join with User table
-                    "TODO: Get Category Name", // You'll need to join with Category table
-                    b.CreatedAt,
-                    b.PublishDate,
-                    b.ViewCount
-                ),
-                cancellationToken
-            );
+        var blog = await _unitOfWork.BlogRepository.FindById(
+            BlogId.From(request.Id),
+            cancellationToken
+        );
 
         if (blog is null)
             return Result<BlogResponse>.Failure("Blog not found", 404);
 
-        return Result<BlogResponse>.Success(blog);
+        return Result<BlogResponse>.Success(
+            new(blog.Id, blog.Title, blog.Content, "", "", blog.CreatedAt, blog.PublishDate, 0)
+        );
     }
 }
