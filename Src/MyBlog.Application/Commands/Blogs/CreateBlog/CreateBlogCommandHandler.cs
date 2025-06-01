@@ -1,9 +1,6 @@
 using MediatR;
 using MyBlog.Core.Aggregates.Blogs;
-using MyBlog.Core.Aggregates.Categories;
-using MyBlog.Core.Aggregates.Users;
 using MyBlog.Core.Models;
-using MyBlog.Core.Primitives;
 using MyBlog.Core.Repositories;
 using MyBlog.Core.Services.Blogs;
 

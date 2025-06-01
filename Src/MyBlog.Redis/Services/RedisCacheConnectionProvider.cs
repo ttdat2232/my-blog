@@ -1,5 +1,3 @@
-using MyBlog.Redis.Settings;
-using Serilog;
 using StackExchange.Redis;
 
 namespace MyBlog.Redis.Services;

@@ -2,8 +2,6 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using MyBlog.Application.Commands.Auth.Login;
 using MyBlog.Application.Commands.Auth.Register;
-using MyBlog.Application.Commands.Auth.RegisterClient;
-using MyBlog.Auth.Extensions;
 using MyBlog.Auth.Models.Auth;
 
 namespace MyBlog.Auth.Controllers;

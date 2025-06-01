@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using MyBlog.Core.Primitives;
 using MyBlog.Core.Specifications;
 
 namespace MyBlog.Core.Repositories;

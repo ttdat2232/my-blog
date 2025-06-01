@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using MyBlog.Core.Aggregates.Categories;
-using MyBlog.Core.Aggregates.Users;
 
 namespace MyBlog.Postgres.Data.TableConfigurations;
 

@@ -1,4 +1,3 @@
-using System;
 using FluentValidation;
 
 namespace MyBlog.Application.Commands.Auth.RegisterClient;

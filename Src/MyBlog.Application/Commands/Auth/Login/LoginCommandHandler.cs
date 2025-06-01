@@ -1,5 +1,4 @@
 using MediatR;
-using MyBlog.Core.Aggregates.Clients;
 using MyBlog.Core.Aggregates.Users;
 using MyBlog.Core.Models;
 using MyBlog.Core.Models.Auth;
