@@ -1,4 +1,3 @@
-using MyBlog.Core.Aggregates.Blogs.Events;
 using MyBlog.Core.Aggregates.Users;
 using MyBlog.Core.Primitives;
 
@@ -10,7 +9,7 @@ public class Comment : Entity<BaseId>
     public BlogId BlogId { get; private set; }
     public string Content { get; private set; }
     public UserId AuthorId { get; private set; }
-    public IEnumerable<Comment> ChidrenComment => _childrenComment.AsReadOnly();
+    public IEnumerable<Comment> ChildrenComment => _childrenComment.AsReadOnly();
     private readonly IList<Comment> _childrenComment;
 
     public static Comment Create(
@@ -42,7 +41,10 @@ public class Comment : Entity<BaseId>
     // EF core require
 #pragma warning disable CS8618, CS8625
     private Comment()
-        : base(default) { }
+        : base(default)
+    {
+        _childrenComment = new List<Comment>();
+    }
 #pragma warning restore CS8618, CS8625
 
     private Comment(

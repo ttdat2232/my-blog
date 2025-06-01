@@ -1,34 +1,22 @@
 using MediatR;
 using MyBlog.Core.Aggregates.Blogs;
+using MyBlog.Core.Aggregates.Categories;
+using MyBlog.Core.Aggregates.Users;
 using MyBlog.Core.Models;
+using MyBlog.Core.Models.Blogs;
 using MyBlog.Core.Repositories;
+using MyBlog.Core.Services.Blogs;
 
 namespace MyBlog.Application.Queries.Blogs.GetBlogById;
 
-public class GetBlogByIdQueryHandler : IRequestHandler<GetBlogByIdQuery, Result<BlogResponse>>
+public class GetBlogByIdQueryHandler(IBlogService _blogService)
+    : IRequestHandler<GetBlogByIdQuery, Result<BlogResponse>>
 {
-    private readonly IUnitOfWork _unitOfWork;
-
-    public GetBlogByIdQueryHandler(IUnitOfWork unitOfWork)
-    {
-        _unitOfWork = unitOfWork;
-    }
-
-    public async Task<Result<BlogResponse>> Handle(
+    public Task<Result<BlogResponse>> Handle(
         GetBlogByIdQuery request,
         CancellationToken cancellationToken
     )
     {
-        var blog = await _unitOfWork.BlogRepository.FindById(
-            BlogId.From(request.Id),
-            cancellationToken
-        );
-
-        if (blog is null)
-            return Result<BlogResponse>.Failure("Blog not found", 404);
-
-        return Result<BlogResponse>.Success(
-            new(blog.Id, blog.Title, blog.Content, "", "", blog.CreatedAt, blog.PublishDate, 0)
-        );
+        return _blogService.GetBlogByIdAsync(BlogId.From(request.Id), cancellationToken);
     }
 }

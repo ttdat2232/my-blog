@@ -1,5 +1,6 @@
 using MyBlog.Core.Aggregates.Blogs;
 using MyBlog.Core.Models;
+using MyBlog.Core.Models.Blogs;
 using MyBlog.Core.Primitives;
 
 namespace MyBlog.Core.Services.Blogs;
@@ -29,4 +30,6 @@ public interface IBlogService
     /// <param name="cancellattionToken">Cancellation token</param>
     /// <returns></returns>
     Task UpdateViewCount(IDictionary<Guid, long> viewCounts, CancellationToken cancellationToken);
+
+    Task<Result<BlogResponse>> GetBlogByIdAsync(BlogId blogId, CancellationToken cancellationToken);
 }

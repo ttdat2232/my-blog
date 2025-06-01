@@ -17,11 +17,10 @@ builder.Services.AddMyBlogEmailServices(builder.Configuration);
 builder.Services.AddMyBlogJwt(builder.Configuration);
 builder.Services.AddMyBlogRabbitMq(builder.Configuration);
 
-builder
-    .Services
-    // .AddHostedService<UpdateViewCountScheduler>()
-    // .AddHostedService<BlogCreatedEventHandler>()
-    .AddHostedService<BlogCommentAddedEventHandler>();
+builder.Services
+// .AddHostedService<UpdateViewCountScheduler>()
+// .AddHostedService<BlogCreatedEventHandler>()
+.AddHostedService<BlogCommentAddedEventHandler>();
 var app = builder.Build();
 
 app.Run();

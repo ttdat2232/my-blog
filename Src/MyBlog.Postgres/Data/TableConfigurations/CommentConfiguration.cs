@@ -37,19 +37,19 @@ public class CommentConfiguration : IEntityTypeConfiguration<Comment>
 
         builder.Property(e => e.DeletedAt).IsRequired(false).HasColumnName("deleted_at");
         builder.Property(e => e.IsDeleted).HasColumnName("is_deleted");
-
+        builder.Ignore(e => e.ChildrenComment);
         builder
-            .HasOne<Comment>()
-            .WithMany(c => c.ChidrenComment)
+            .HasMany(c => c.ChildrenComment)
+            .WithOne()
             .HasForeignKey(c => c.ParentCommentId)
-            .IsRequired(false);
+            .OnDelete(DeleteBehavior.Cascade);
 
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
         builder
             .Property(comment => comment.ParentCommentId)
             .HasColumnName("parent_comment_id")
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             .HasConversion(id => id.Value, value => BaseId.From(value))
+#pragma warning restore CS8602
             .IsRequired(false);
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
     }
 }

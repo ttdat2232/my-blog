@@ -5,6 +5,7 @@ using MyBlog.Core.Aggregates.Blogs;
 using MyBlog.Core.Aggregates.Categories;
 using MyBlog.Core.Aggregates.Users;
 using MyBlog.Core.Models;
+using MyBlog.Core.Models.Blogs;
 using MyBlog.Core.Repositories;
 
 namespace MyBlog.Application.Queries.Blogs.GetBlogs;

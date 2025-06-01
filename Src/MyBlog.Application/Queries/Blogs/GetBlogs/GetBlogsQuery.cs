@@ -1,7 +1,9 @@
 using MediatR;
+
 using MyBlog.Application.Models;
 using MyBlog.Core.Aggregates.Blogs;
 using MyBlog.Core.Models;
+using MyBlog.Core.Models.Blogs;
 
 namespace MyBlog.Application.Queries.Blogs.GetBlogs;
 

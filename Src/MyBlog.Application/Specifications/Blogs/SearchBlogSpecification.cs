@@ -1,4 +1,3 @@
-using MyBlog.Application.Queries.Blogs;
 using MyBlog.Core.Aggregates.Blogs;
 using MyBlog.Core.Specifications;
 

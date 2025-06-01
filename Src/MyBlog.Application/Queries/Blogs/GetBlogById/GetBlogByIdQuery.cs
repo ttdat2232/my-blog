@@ -1,5 +1,6 @@
 using MediatR;
 using MyBlog.Core.Models;
+using MyBlog.Core.Models.Blogs;
 
 namespace MyBlog.Application.Queries.Blogs.GetBlogById;
 

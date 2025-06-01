@@ -13,39 +13,18 @@ public class CustomBlogRepository(MyBlogContext _context)
         CancellationToken cancellationToken = default
     )
     {
-        //TODO[improvement]: use a single query to fetch blog and comments
-        //TODO[improvement]: include author information
         var blog = await _context
             .Set<BlogAggregate>()
+            .Include(b => b.Comments)
+            .ThenInclude(c => c.ChildrenComment)
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
-        if (blog is null)
-            return blog;
-
-        var sql =
-            @"
-            WITH RECURSIVE comment_hierachy AS (
-                SELECT c.*
-                FROM comments AS c
-                WHERE c.blog_id = {0}
-                UNION ALL
-                SELECT c.*
-                FROM comments AS c
-                INNER JOIN comment_hierachy AS ch ON c.parent_comment_id = ch.id
-            )
-            SELECT * FROM comment_hierachy";
-        var comments = await _context
-            .Set<Comment>()
-            .FromSqlRaw(sql, id.Value)
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
-
-        // TODO[bug]: cannot set field
+        var comments = blog?.Comments.Where(c => c.ParentCommentId is null).ToList();
         typeof(BlogAggregate)
             .GetField(
                 "_comments",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
-            )
-            ?.SetValue(blog, comments);
+            )!
+            .SetValue(blog, comments); // Set the private field _comments with the filtered comments
         return blog;
     }
 
