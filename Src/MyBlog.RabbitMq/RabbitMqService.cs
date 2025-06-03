@@ -76,7 +76,7 @@ public class RabbitMqMessageBroker : IMessageBroker
     public async Task AcknowledgeAsync(string messageId, bool multiple = false)
     {
         var result = await _cacheService.GetAndRemoveAsync<BasicGetResult>(
-            $"rabbitmq:message:{messageId}"
+            ["rabbitmq", "message", messageId]
         );
 
         if (result != null)
@@ -140,7 +140,7 @@ public class RabbitMqMessageBroker : IMessageBroker
 
             var message = new Message<T> { Payload = payload, Metadata = metadata };
 
-            await _cacheService.SetAsync($"rabbitmq:message:{metadata.MessageId}", result);
+            await _cacheService.SetAsync(["rabbitmq", "message", metadata.MessageId], result);
             return message;
         }
         catch (Exception ex)
@@ -248,7 +248,7 @@ public class RabbitMqMessageBroker : IMessageBroker
     public async Task RejectAsync(string messageId, bool requeue = true)
     {
         var result = await _cacheService.GetAndRemoveAsync<BasicGetResult>(
-            $"rabbitmq:message:{messageId}"
+            ["rabbitmq", "message", messageId]
         );
         if (result != null)
         {
@@ -310,9 +310,9 @@ public class RabbitMqMessageBroker : IMessageBroker
                 }
 
                 var message = new Message<T> { Payload = payload!, Metadata = metadata };
-
+                var cachedKey = new[] { "rabbitmq", "message", metadata.MessageId };
                 await _cacheService.SetAsync(
-                    $"rabbitmq:message:{metadata.MessageId}",
+                    cachedKey,
                     new BasicGetResult(
                         args.DeliveryTag,
                         args.Redelivered,
@@ -336,7 +336,7 @@ public class RabbitMqMessageBroker : IMessageBroker
                     {
                         await _channel.BasicRejectAsync(args.DeliveryTag, true);
                     }
-                    _ = _cacheService.RemoveAsync($"rabbitmq:message:{metadata.MessageId}");
+                    _ = _cacheService.RemoveAsync<BasicGetResult>(cachedKey);
                 }
             }
             catch (Exception ex)
@@ -347,16 +347,15 @@ public class RabbitMqMessageBroker : IMessageBroker
         };
 
         var tag = await _channel.BasicConsumeAsync(queueName, false, consumer);
-        await _cacheService.SetAsync($"rabbitmq:consumingtag:{queueName}", tag);
+        var cachedKey = new[] { "rabbitmq", "consumingtag", queueName };
+        await _cacheService.SetAsync(cachedKey, tag);
 
         var tcs = new TaskCompletionSource<bool>();
         using (cancellationToken.Register(() => tcs.TrySetResult(true)))
         {
             await tcs.Task;
 
-            var consumerTag = await _cacheService.GetAndRemoveAsync<string>(
-                $"rabbitmq:consumingtag:{queueName}"
-            );
+            var consumerTag = await _cacheService.GetAndRemoveAsync<string>(cachedKey);
             if (consumerTag != null)
             {
                 await _channel.BasicCancelAsync(consumerTag);

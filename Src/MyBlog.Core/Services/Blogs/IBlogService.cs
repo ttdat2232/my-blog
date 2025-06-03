@@ -32,4 +32,5 @@ public interface IBlogService
     Task UpdateViewCount(IDictionary<Guid, long> viewCounts, CancellationToken cancellationToken);
 
     Task<Result<BlogResponse>> GetBlogByIdAsync(BlogId blogId, CancellationToken cancellationToken);
+    Task<Result<BlogResponse>> GetBlogBySlugAsync(string slug, CancellationToken cancellationToken);
 }

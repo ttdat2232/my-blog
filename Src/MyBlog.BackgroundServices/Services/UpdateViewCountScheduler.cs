@@ -53,19 +53,19 @@ public sealed class UpdateViewCountScheduler(IServiceProvider _serviceProvider)
 
             Serilog.Log.Debug("Fetching view counts from cache");
             var viewCounts = await cacheService.GetAndRemoveAsync<IDictionary<Guid, long>>(
-                "blog:viewcount",
+                ["blog", "viewcount"],
                 cancellationToken
             );
 
             if (viewCounts != null && viewCounts.Count > 0)
             {
                 Serilog.Log.Debug(
-                    "Retrieved {count} view counts from cache, updating blog service",
+                    "Retrieved {Count} view counts from cache, updating blog service",
                     viewCounts.Count
                 );
                 await blogService.UpdateViewCount(viewCounts, cancellationToken);
                 Serilog.Log.Information(
-                    "Successfully updated view counts for {count} blogs",
+                    "Successfully updated view counts for {Count} blogs",
                     viewCounts.Count
                 );
             }

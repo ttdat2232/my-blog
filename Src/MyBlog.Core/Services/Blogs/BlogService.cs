@@ -5,10 +5,11 @@ using MyBlog.Core.Models;
 using MyBlog.Core.Models.Blogs;
 using MyBlog.Core.Primitives;
 using MyBlog.Core.Repositories;
+using MyBlog.Core.Services.Cache;
 
 namespace MyBlog.Core.Services.Blogs;
 
-public class BlogService(IUnitOfWork _unitOfWork) : IBlogService
+public class BlogService(IUnitOfWork _unitOfWork, ICacheService _cacheService) : IBlogService
 {
     public async Task<Result<BlogAggregate>> CreateBlogAsync(
         string title,
@@ -51,6 +52,8 @@ public class BlogService(IUnitOfWork _unitOfWork) : IBlogService
             publishDate
         );
 
+        await _cacheService.RemoveAllByKeyPatternAsync<object>("blog:*", false, cancellationToken);
+
         return blogResult;
     }
 
@@ -59,6 +62,11 @@ public class BlogService(IUnitOfWork _unitOfWork) : IBlogService
         CancellationToken cancellationToken
     )
     {
+        string[] cacheKey = ["id", blogId.Value.ToString()];
+        var cached = await _cacheService.GetAsync<BlogResponse>(cacheKey, cancellationToken);
+        if (cached != null)
+            return Result<BlogResponse>.Success(cached);
+
         var blog = await _unitOfWork.BlogRepository.FindById(blogId, cancellationToken);
         if (blog is null)
             return Result<BlogResponse>.Failure(BlogErrors.NotFoundBlog);
@@ -78,14 +86,14 @@ public class BlogService(IUnitOfWork _unitOfWork) : IBlogService
                 c => new { c.Name, c.Id },
                 cancellationToken
             );
-        return Result<BlogResponse>.Success(
-            BlogResponse.FromAggregate(
-                blog,
-                userDict.TryGetValue(blog.AuthorId, out var authorName) ? authorName : string.Empty,
-                category?.Name ?? string.Empty,
-                userDict
-            )
+        var response = BlogResponse.FromAggregate(
+            blog,
+            userDict.TryGetValue(blog.AuthorId, out var authorName) ? authorName : string.Empty,
+            category?.Name ?? string.Empty,
+            userDict
         );
+        _ = _cacheService.SetAsync(cacheKey, response, TimeSpan.FromMinutes(10), cancellationToken);
+        return Result<BlogResponse>.Success(response);
     }
 
     private static HashSet<UserId> CollectUserIds(BlogAggregate blog)
@@ -147,5 +155,50 @@ public class BlogService(IUnitOfWork _unitOfWork) : IBlogService
         )
             return Result<bool>.Failure(BlogErrors.CategoryNotExisted);
         return Result<bool>.Success(true);
+    }
+
+    public async Task<Result<BlogResponse>> GetBlogBySlugAsync(
+        string slug,
+        CancellationToken cancellationToken
+    )
+    {
+        var cacheKey = new[] { "blog", "slug", slug };
+        var cached = await _cacheService.GetAsync<BlogResponse>(cacheKey, cancellationToken);
+        if (cached != null)
+            return Result<BlogResponse>.Success(cached);
+
+        var blog = await _unitOfWork.BlogRepository.GetBySlugAsync(slug, cancellationToken);
+        if (blog is null)
+            return Result<BlogResponse>.Failure(BlogErrors.NotFoundBlog);
+
+        var userIds = CollectUserIds(blog);
+        var users = await _unitOfWork
+            .Repository<UserAggregate, UserId>()
+            .GetAllAsync(
+                u => new { u.Id, u.UserName },
+                u => userIds.Contains(u.Id),
+                cancellationToken
+            );
+        var userDict = users.ToDictionary(u => u.Id, u => u.UserName);
+        var category = await _unitOfWork
+            .Repository<CategoryAggregate, CategoryId>()
+            .GetOneAsync(
+                c => c.Id == blog.CategoryId,
+                c => new { c.Name, c.Id },
+                cancellationToken
+            );
+        var response = BlogResponse.FromAggregate(
+            blog,
+            userDict[blog.AuthorId],
+            category?.Name ?? string.Empty,
+            userDict
+        );
+        await _cacheService.SetAsync(
+            cacheKey,
+            response,
+            TimeSpan.FromMinutes(10),
+            cancellationToken
+        );
+        return Result<BlogResponse>.Success(response);
     }
 }

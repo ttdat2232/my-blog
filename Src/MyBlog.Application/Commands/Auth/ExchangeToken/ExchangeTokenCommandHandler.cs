@@ -20,7 +20,7 @@ public class ExchangeTokenCommandHandler(
     )
     {
         var authCodeChallengeInfo =
-            await _cacheService.GetAndRemoveAsync<AuthCodeChallengeInformation>(request.AuthCode);
+            await _cacheService.GetAndRemoveAsync<AuthCodeChallengeInformation>([request.AuthCode]);
         if (authCodeChallengeInfo == null)
             return Result<ExchangeTokenResponse>.Failure(UserErrors.InvalidAuthorizationCode);
 

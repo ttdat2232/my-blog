@@ -43,7 +43,7 @@ public class GetLoginPageQueryHandler(IUnitOfWork _unitOfWork, ICacheService _ca
             request.RedirectUri,
             request.Scopes
         );
-        _ = _cacheService.SetAsync(request.SessionId, codeChallenge, TimeSpan.FromMinutes(10));
+        _ = _cacheService.SetAsync([request.SessionId], codeChallenge, TimeSpan.FromMinutes(10));
         return Result<bool>.Success(true);
     }
 }

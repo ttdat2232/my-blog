@@ -86,6 +86,8 @@ public class BlogConfiguration : IEntityTypeConfiguration<BlogAggregate>
             .IsRequired()
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.Property(e => e.Slug).HasColumnName("slug").IsRequired().HasMaxLength(400);
+
         ConfigureComnentRelation(builder);
 
         builder

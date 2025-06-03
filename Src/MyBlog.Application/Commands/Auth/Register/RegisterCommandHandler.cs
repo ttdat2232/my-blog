@@ -29,7 +29,7 @@ public class RegisterCommandHandler(
         var user = UserAggregate.Create(request.Username, request.Email, request.Password);
         await userRepo.AddAsync(user);
         var userRole = await _cacheService.GetOrCreateAsync(
-            "role:user",
+            ["role", "user"],
             async () =>
             {
                 var roleRepo = _unitOfWork.Repository<RoleAggregate, RoleId>();

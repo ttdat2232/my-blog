@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MyBlog.Application.Commands.Blogs.AddComment;
 using MyBlog.Application.Commands.Blogs.CreateBlog;
 using MyBlog.Application.Queries.Blogs.GetBlogById;
+using MyBlog.Application.Queries.Blogs.GetBlogBySlug;
 using MyBlog.Application.Queries.Blogs.GetBlogs;
 using MyBlog.WebApi.Extensions;
 using MyBlog.WebApi.Models.Blogs;
@@ -72,6 +73,14 @@ public class BlogsController(ISender sender) : ControllerBase
     public async Task<IActionResult> GetBlogById(Guid id, CancellationToken cancellationToken)
     {
         var blogQuery = new GetBlogByIdQuery(id);
+        var result = await sender.Send(blogQuery, cancellationToken);
+        return result.ToActionResult();
+    }
+
+    [HttpGet("slug/{slug}")]
+    public async Task<IActionResult> GetBlogBySlug(string slug, CancellationToken cancellationToken)
+    {
+        var blogQuery = new GetBlogBySlugQuery(slug);
         var result = await sender.Send(blogQuery, cancellationToken);
         return result.ToActionResult();
     }

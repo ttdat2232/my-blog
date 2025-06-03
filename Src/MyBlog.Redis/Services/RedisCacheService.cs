@@ -48,12 +48,14 @@ public class RedisCacheService : ICacheService
         );
     }
 
-    public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
+    public async Task<T?> GetAsync<T>(string[] key, CancellationToken cancellationToken = default)
     {
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var formattedKey = _keyProvider.GenerateKey(typeof(T).Name, key);
+            var formattedKey = _keyProvider.GenerateKey(
+                new[] { typeof(T).Name }.Concat(key).ToArray()
+            );
             var database = _connectionProvider.GetDatabase();
             var value = await database.StringGetAsync(formattedKey);
 
@@ -74,7 +76,7 @@ public class RedisCacheService : ICacheService
     }
 
     public async Task<bool> SetAsync<T>(
-        string key,
+        string[] key,
         T value,
         TimeSpan? expiry = null,
         CancellationToken cancellationToken = default
@@ -83,7 +85,9 @@ public class RedisCacheService : ICacheService
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var formattedKey = _keyProvider.GenerateKey(typeof(T).Name, key);
+            var formattedKey = _keyProvider.GenerateKey(
+                new[] { typeof(T).Name }.Concat(key).ToArray()
+            );
             var database = _connectionProvider.GetDatabase();
             var serializedValue = JsonConvert.SerializeObject(value);
 
@@ -113,12 +117,17 @@ public class RedisCacheService : ICacheService
         }
     }
 
-    public async Task<bool> RemoveAsync(string key, CancellationToken cancellationToken = default)
+    public async Task<bool> RemoveAsync<T>(
+        string[] key,
+        CancellationToken cancellationToken = default
+    )
     {
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var formattedKey = _keyProvider.GenerateKey(key);
+            var formattedKey = _keyProvider.GenerateKey(
+                new[] { typeof(T).Name }.Concat(key).ToArray()
+            );
             var database = _connectionProvider.GetDatabase();
 
             var result = await database.KeyDeleteAsync(formattedKey);
@@ -141,7 +150,7 @@ public class RedisCacheService : ICacheService
         }
     }
 
-    public async Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default)
+    public async Task<bool> ExistsAsync(string[] key, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -159,7 +168,7 @@ public class RedisCacheService : ICacheService
     }
 
     public async Task<T> GetOrCreateAsync<T>(
-        string key,
+        string[] key,
         Func<Task<T>> factory,
         TimeSpan? expiry = null,
         CancellationToken cancellationToken = default
@@ -184,13 +193,15 @@ public class RedisCacheService : ICacheService
     }
 
     public async Task<T?> GetAndRemoveAsync<T>(
-        string key,
+        string[] key,
         CancellationToken cancellationToken = default
     )
     {
         try
         {
-            var formattedKey = _keyProvider.GenerateKey(typeof(T).Name, key);
+            var formattedKey = _keyProvider.GenerateKey(
+                new[] { typeof(T).Name }.Concat(key).ToArray()
+            );
             var database = _connectionProvider.GetDatabase();
             var value = await database.StringGetAsync(formattedKey);
 

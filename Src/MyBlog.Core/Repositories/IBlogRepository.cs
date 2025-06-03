@@ -8,4 +8,6 @@ public interface IBlogRepository : IRepository<BlogAggregate, BlogId>
         IDictionary<BlogId, long> viewCounts,
         CancellationToken cancellationToken = default
     );
+
+    Task<BlogAggregate?> GetBySlugAsync(string slug, CancellationToken cancellationToken = default);
 }

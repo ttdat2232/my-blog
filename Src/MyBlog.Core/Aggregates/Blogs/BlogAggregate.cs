@@ -15,6 +15,7 @@ public sealed class BlogAggregate : AggregateRoot<BlogId>
         string content,
         UserId authorId,
         CategoryId categoryId,
+        string slug,
         BlogStatus status,
         DateTime? publishDate,
         bool isPublish
@@ -31,6 +32,7 @@ public sealed class BlogAggregate : AggregateRoot<BlogId>
         PublishDate = publishDate;
         Status = status;
         IsPublished = isPublish;
+        Slug = slug;
         AddDomainEvent(new BlogCreatedEvent(id, Title, AuthorId));
     }
 
@@ -47,6 +49,7 @@ public sealed class BlogAggregate : AggregateRoot<BlogId>
     public string Title { get; private set; }
     public string Content { get; private set; }
     public long ViewCount { get; private set; }
+    public string Slug { get; private set; }
     public UserId AuthorId { get; private set; }
     public CategoryId CategoryId { get; private set; }
     public BlogStatus Status { get; private set; }
@@ -78,19 +81,33 @@ public sealed class BlogAggregate : AggregateRoot<BlogId>
             return Result<BlogAggregate>.Failure(BlogErrors.InvalidPublishDate);
         }
         var status = isDraft ? BlogStatus.Draft : BlogStatus.Active;
-
+        var slug = GetSlug(title);
         var blog = new BlogAggregate(
             BlogId.New(),
             title,
             content,
             UserId.From(authorId),
             CategoryId.From(categoryId),
+            slug,
             status,
             publishDate,
             publishDate.HasValue
         );
         return Result<BlogAggregate>.Success(blog);
     }
+
+    private static string GetSlug(string title) =>
+        title
+            .ToLowerInvariant()
+            .Replace(" ", "-")
+            .Replace("'", "")
+            .Replace("\"", "")
+            .Replace(",", "")
+            .Replace(".", "")
+            .Replace("!", "")
+            .Replace("?", "")
+            .Replace(":", "")
+            .Replace(";", "");
 
     public Result<bool> Publish()
     {
@@ -121,6 +138,7 @@ public sealed class BlogAggregate : AggregateRoot<BlogId>
             return Result<bool>.Failure(BlogErrors.ActionOnBannedBlog);
 
         Title = title;
+        Slug = GetSlug(title);
         Content = content;
         Status = status;
         AddDomainEvent(new BlogUpdatedEvent(this));

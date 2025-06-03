@@ -29,7 +29,7 @@ public class LoginCommandHandler(IUnitOfWork _unitOfWork, ICacheService _cacheSe
 
         var authorizaeCodeInfo =
             await _cacheService.GetAndRemoveAsync<AuthCodeChallengeInformation>(
-                request.SessionId,
+                [request.SessionId],
                 cancellationToken
             );
         if (authorizaeCodeInfo == null)
@@ -39,7 +39,7 @@ public class LoginCommandHandler(IUnitOfWork _unitOfWork, ICacheService _cacheSe
         authorizaeCodeInfo.AddAuthorizationCode(authorizationCode);
         authorizaeCodeInfo.AddUserInformation(user.Id);
         _ = _cacheService
-            .SetAsync(authorizationCode, authorizaeCodeInfo)
+            .SetAsync([authorizationCode], authorizaeCodeInfo)
             .ContinueWith(t =>
             {
                 if (t.Status == TaskStatus.RanToCompletion)

@@ -12,8 +12,9 @@ public class AddViewComandHandler(ICacheService _cacheService)
         CancellationToken cancellationToken
     )
     {
+        var cacheKey = new[] { "blog", "viewcount" };
         var viewCounts = await _cacheService.GetAndRemoveAsync<IDictionary<Guid, long>>(
-            "blog:viewcount",
+            cacheKey,
             cancellationToken
         );
 
@@ -28,7 +29,7 @@ public class AddViewComandHandler(ICacheService _cacheService)
         }
 
         _ = _cacheService
-            .SetAsync("blog:viewcount", viewCounts, TimeSpan.FromDays(1), cancellationToken)
+            .SetAsync(cacheKey, viewCounts, TimeSpan.FromDays(1), cancellationToken)
             .ContinueWith(_ => Serilog.Log.Information("Successfully cached view count"));
         return Result<bool>.Success(true);
     }
