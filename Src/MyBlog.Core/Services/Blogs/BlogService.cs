@@ -49,6 +49,10 @@ public class BlogService(IUnitOfWork _unitOfWork, ICacheService _cacheService) :
             authorId,
             categoryId,
             isDraft,
+            await _unitOfWork.BlogRepository.CountAsync(
+                b => b.Slug.StartsWith(BlogAggregate.GetSlug(title)),
+                cancellationToken
+            ),
             publishDate
         );
 

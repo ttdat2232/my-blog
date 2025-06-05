@@ -32,7 +32,10 @@ public class UpdateBlogCommandHandler(IUnitOfWork _unitOfWork, IBlogService _blo
         if (validationResult.IsFailure)
             return validationResult;
 
-        blog.Update(request.Title, request.Content, request.Status);
+        var slugCount = await _unitOfWork
+            .Repository<BlogAggregate, BlogId>()
+            .CountAsync(b => b.Slug == BlogAggregate.GetSlug(request.Title), cancellationToken);
+        blog.Update(request.Title, request.Content, request.Status, slugCount);
 
         await _unitOfWork.Repository<BlogAggregate, BlogId>().UpdateAsync(blog, cancellationToken);
         await _unitOfWork.SaveAsync(cancellationToken);

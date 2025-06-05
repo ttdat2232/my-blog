@@ -10,14 +10,14 @@ Authorization: {{token}}
 ### Create blos
 POST {{host}}/api/blogs
 Content-Type: application/json
-Authorization: {{token}}
+Authorization: {{token2}}
 
 {
-  "title": "The Evolution of Modern Soccer Tactics",
-  "content": "Modern soccer tactics have undergone significant changes in recent decades, revolutionizing how the game is played. From the traditional 4-4-2 formation to more fluid systems like tiki-taka and gegenpress, tactical innovation continues to shape the sport.\n\nKey developments include the rise of the false nine position, high-pressing strategies, and possession-based play. Managers like Pep Guardiola and Jurgen Klopp have popularized distinct tactical approaches that have influenced teams worldwide.\n\nThe role of data analytics has also become crucial in tactical planning. Teams now use advanced statistics and performance metrics to optimize their strategies and player positioning. This scientific approach has added a new dimension to the beautiful game.",
+  "title": "The Rising Impact of Analytics in Professional Sports",
+  "content": "Analytics have become a cornerstone in the evolution of professional sports, influencing everything from player recruitment to in-game tactics. Teams now leverage real-time data to optimize lineups, monitor player health, and gain a competitive edge. For example, soccer clubs use tracking systems to analyze player movement and fatigue, while baseball franchises rely on predictive models to determine pitching rotations and batting orders. The integration of analytics has also enhanced fan engagement, with interactive statistics and visualizations becoming standard in broadcasts. As technology advances, the role of analytics in shaping strategies and outcomes across all major sports is only expected to grow.",
   "status": 1,
   "categoryId": "e48a5154-6ba2-4555-9b9c-1dfce3d0bd55",
-  "publishDate": "2025-05-31T09:30:00Z",
+  "publishDate": "2025-06-30T09:30:00Z",
   "isDraft": false
 }
 
@@ -27,10 +27,13 @@ Content-Type: application/json
 Authorization: {{token2}}
 
 {
-  "content": "I love this",
-  "parentCommentId": null
+  "content": "this article is helpful children",
+  "parentCommentId": "e263fcd9-97cd-473e-bf0a-09f21ddf84c4"
 }
 
 
 ### Get blog by Id
 GET  {{host}}/api/blogs/78029818-206a-461a-8683-a783921ba470
+
+### Get blog by slug
+GET  {{host}}/api/blogs/slug/the-rising-impact-of-analytics-in-professional-sports

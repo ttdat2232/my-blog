@@ -55,6 +55,8 @@ builder.Services.AddAuthorization(opts =>
 builder.Services.AddControllers();
 var app = builder.Build();
 
+app.UseMiddleware<StatictistMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();

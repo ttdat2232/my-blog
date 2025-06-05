@@ -66,6 +66,7 @@ public sealed class BlogAggregate : AggregateRoot<BlogId>
         Guid authorId,
         Guid categoryId,
         bool isDraft,
+        int slugCount,
         DateTime? publishDate
     )
     {
@@ -82,6 +83,10 @@ public sealed class BlogAggregate : AggregateRoot<BlogId>
         }
         var status = isDraft ? BlogStatus.Draft : BlogStatus.Active;
         var slug = GetSlug(title);
+        if (slugCount > 0)
+        {
+            slug = $"{slug}-{slugCount}";
+        }
         var blog = new BlogAggregate(
             BlogId.New(),
             title,
@@ -96,7 +101,7 @@ public sealed class BlogAggregate : AggregateRoot<BlogId>
         return Result<BlogAggregate>.Success(blog);
     }
 
-    private static string GetSlug(string title) =>
+    public static string GetSlug(string title) =>
         title
             .ToLowerInvariant()
             .Replace(" ", "-")
@@ -132,13 +137,17 @@ public sealed class BlogAggregate : AggregateRoot<BlogId>
         _tags.Remove(BlogTag.From(Id, tagId));
     }
 
-    public Result<bool> Update(string title, string content, BlogStatus status)
+    public Result<bool> Update(string title, string content, BlogStatus status, int slugCount)
     {
         if (Status == BlogStatus.Banned)
             return Result<bool>.Failure(BlogErrors.ActionOnBannedBlog);
 
         Title = title;
         Slug = GetSlug(title);
+        if (slugCount > 0)
+        {
+            Slug = $"{Slug}-{slugCount}";
+        }
         Content = content;
         Status = status;
         AddDomainEvent(new BlogUpdatedEvent(this));
