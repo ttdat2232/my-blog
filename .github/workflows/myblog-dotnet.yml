@@ -8,34 +8,26 @@ on:
 
 jobs:
   build:
+    runs-on: [self-hosted, Windows, X64]
+
     strategy:
       matrix:
         configuration: [Debug, Release]
-
-    runs-on: [self-hosted, Windows, X64]
-
+        dotnet-version: [9.0.x]
     env:
-      Solution_Name: MyBlog.sln
+      solution-name: MyBlog.sln
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Install .NET Core
+      - name: Setup dotnet
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: ${{ matrix.dotnet-version }}
 
-      - name: Setup MSBuild.exe
-        uses: microsoft/setup-msbuild@v2
+      - name: Install dependencies
+        run: dotnet restore ${{env.solution-name}}
 
-      # Execute all unit tests in the solution
-      # - name: Execute unit tests
-      #  run: dotnet test
-
-      - name: Build the application
-        run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
-        env:
-          Configuration: ${{ matrix.configuration }}
+      - name: Build project
+        run: dotnet build ${{env.solution-name}}
