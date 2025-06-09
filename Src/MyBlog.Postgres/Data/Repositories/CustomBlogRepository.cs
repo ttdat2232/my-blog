@@ -15,16 +15,10 @@ public class CustomBlogRepository(MyBlogContext _context)
     {
         var blog = await _context
             .Set<BlogAggregate>()
-            .Include(b => b.Comments)
+            .Include(b => b.Comments.Where(c => c.ParentCommentId == null))
             .ThenInclude(c => c.ChildrenComment)
+            .Include(b => b.Likes)
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
-        var comments = blog?.Comments.Where(c => c.ParentCommentId is null).ToList();
-        typeof(BlogAggregate)
-            .GetField(
-                "_comments",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
-            )!
-            .SetValue(blog, comments);
         return blog;
     }
 
@@ -35,16 +29,10 @@ public class CustomBlogRepository(MyBlogContext _context)
     {
         var blog = await _context
             .Set<BlogAggregate>()
-            .Include(b => b.Comments)
+            .Include(b => b.Comments.Where(blog => blog.ParentCommentId == null))
             .ThenInclude(c => c.ChildrenComment)
+            .Include(b => b.Likes)
             .FirstOrDefaultAsync(b => b.Slug == slug);
-        var comments = blog?.Comments.Where(c => c.ParentCommentId is null).ToList();
-        typeof(BlogAggregate)
-            .GetField(
-                "_comments",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
-            )!
-            .SetValue(blog, comments);
         return blog;
     }
 

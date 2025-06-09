@@ -22,7 +22,6 @@ public class BlogTagConfiguration : IEntityTypeConfiguration<BlogTag>
             .HasColumnName("tag_id")
             .HasConversion(key => key.Value, value => TagId.From(value))
             .IsRequired();
-        ;
 
         builder.Ignore(e => e.Id);
         builder.Ignore(e => e.CreatedAt);

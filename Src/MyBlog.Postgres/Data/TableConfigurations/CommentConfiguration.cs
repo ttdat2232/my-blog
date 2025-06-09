@@ -47,7 +47,7 @@ public class CommentConfiguration : IEntityTypeConfiguration<Comment>
         builder
             .Property(comment => comment.ParentCommentId)
             .HasColumnName("parent_comment_id")
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
+#pragma warning disable CS8602
             .HasConversion(id => id.Value, value => BaseId.From(value))
 #pragma warning restore CS8602
             .IsRequired(false);

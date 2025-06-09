@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using MyBlog.Core.Aggregates.Blogs;
 using MyBlog.Core.Aggregates.Categories;
 using MyBlog.Core.Aggregates.Users;
-using MyBlog.Core.Primitives;
 
 namespace MyBlog.Postgres.Data.TableConfigurations;
 
@@ -72,6 +71,8 @@ public class BlogConfiguration : IEntityTypeConfiguration<BlogAggregate>
             .HasConversion(id => id.Value, value => UserId.From(value))
             .IsRequired(false);
 
+        builder.Property(e => e.Slug).HasColumnName("slug").IsRequired().HasMaxLength(400);
+
         builder
             .HasOne<CategoryAggregate>()
             .WithMany()
@@ -86,20 +87,54 @@ public class BlogConfiguration : IEntityTypeConfiguration<BlogAggregate>
             .IsRequired()
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.Property(e => e.Slug).HasColumnName("slug").IsRequired().HasMaxLength(400);
-
-        ConfigureComnentRelation(builder);
+        ConfigureComnentsTable(builder);
+        ConfigureLikesTable(builder);
 
         builder
             .Metadata.FindNavigation(nameof(BlogAggregate.Tags))!
             .SetPropertyAccessMode(PropertyAccessMode.Field);
+    }
+
+    private static void ConfigureComnentsTable(EntityTypeBuilder<BlogAggregate> builder)
+    {
+        builder.HasMany(c => c.Comments).WithOne().HasForeignKey(c => c.BlogId);
         builder
             .Metadata.FindNavigation(nameof(BlogAggregate.Comments))!
             .SetPropertyAccessMode(PropertyAccessMode.Field);
     }
 
-    private static void ConfigureComnentRelation(EntityTypeBuilder<BlogAggregate> builder)
+    private static void ConfigureLikesTable(EntityTypeBuilder<BlogAggregate> builder)
     {
-        builder.HasMany(c => c.Comments).WithOne().HasForeignKey(c => c.BlogId);
+        builder.OwnsMany(
+            blog => blog.Likes,
+            likeBuilder =>
+            {
+                likeBuilder.ToTable("likes");
+                likeBuilder.HasKey(l => new { l.BlogId, l.UserId });
+
+                likeBuilder.Property(l => l.CreatedAt).HasColumnName("created_at");
+                likeBuilder
+                    .Property(l => l.BlogId)
+                    .HasColumnName("blog_id")
+                    .HasConversion(id => id.Value, value => BlogId.From(value));
+                likeBuilder
+                    .Property(l => l.UserId)
+                    .HasColumnName("user_id")
+                    .HasConversion(id => id.Value, value => UserId.From(value));
+
+                likeBuilder.WithOwner().HasForeignKey(l => l.BlogId);
+                likeBuilder.HasOne<UserAggregate>().WithMany().HasForeignKey(l => l.UserId);
+
+                likeBuilder.Ignore(l => l.Id);
+                likeBuilder.Ignore(l => l.CreatedBy);
+                likeBuilder.Ignore(l => l.UpdatedBy);
+                likeBuilder.Ignore(l => l.UpdatedAt);
+                likeBuilder.Ignore(l => l.IsDeleted);
+                likeBuilder.Ignore(l => l.DeletedAt);
+            }
+        );
+        builder
+            .Metadata.FindNavigation(nameof(BlogAggregate.Likes))!
+            .SetPropertyAccessMode(PropertyAccessMode.Field);
     }
 }

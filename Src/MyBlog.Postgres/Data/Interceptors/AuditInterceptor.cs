@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using MyBlog.Core.Aggregates.Blogs;
 using MyBlog.Core.Primitives;
 
 namespace MyBlog.Postgres.Data.Interceptors;
@@ -16,7 +17,7 @@ public sealed class AuditInterceptor : SaveChangesInterceptor
 
         foreach (
             var entry in eventData
-                .Context.ChangeTracker.Entries<Entity<object>>()
+                .Context.ChangeTracker.Entries<IEntity>()
                 .Where(e =>
                     e.State == Microsoft.EntityFrameworkCore.EntityState.Modified
                     || e.State == Microsoft.EntityFrameworkCore.EntityState.Added

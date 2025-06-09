@@ -9,43 +9,6 @@ namespace MyBlog.Core.Aggregates.Blogs;
 
 public sealed class BlogAggregate : AggregateRoot<BlogId>
 {
-    private BlogAggregate(
-        BlogId id,
-        string title,
-        string content,
-        UserId authorId,
-        CategoryId categoryId,
-        string slug,
-        BlogStatus status,
-        DateTime? publishDate,
-        bool isPublish
-    )
-        : base(id)
-    {
-        Title = title;
-        Content = content;
-        ViewCount = 0;
-        AuthorId = authorId;
-        CategoryId = categoryId;
-        _tags = new List<BlogTag>();
-        _comments = new List<Comment>();
-        PublishDate = publishDate;
-        Status = status;
-        IsPublished = isPublish;
-        Slug = slug;
-        AddDomainEvent(new BlogCreatedEvent(id, Title, AuthorId));
-    }
-
-    // EF core require
-#pragma warning disable CS8618, CS8625
-    private BlogAggregate()
-        : base(default)
-    {
-        _tags = new List<BlogTag>();
-        _comments = new List<Comment>();
-    }
-#pragma warning restore CS8618, CS8625
-
     public string Title { get; private set; }
     public string Content { get; private set; }
     public long ViewCount { get; private set; }
@@ -57,6 +20,8 @@ public sealed class BlogAggregate : AggregateRoot<BlogId>
     public bool IsPublished { get; private set; }
     public IEnumerable<Comment> Comments => _comments.AsReadOnly();
     public IEnumerable<BlogTag> Tags => _tags.AsReadOnly();
+    public IEnumerable<Like> Likes => _likes.AsReadOnly();
+    private readonly IList<Like> _likes;
     private readonly IList<BlogTag> _tags;
     private readonly IList<Comment> _comments;
 
@@ -183,4 +148,55 @@ public sealed class BlogAggregate : AggregateRoot<BlogId>
     {
         ViewCount += count;
     }
+
+    public void AddLike(Guid userId)
+    {
+        var userIdFrom = UserId.From(userId);
+        if (Likes.Any(l => l.UserId == userIdFrom))
+        {
+            Log.Warning("User {UserId} already liked the blog {BlogId}", userId, Id.Value);
+            return;
+        }
+        _likes.Add(Like.Create(Id, userIdFrom));
+        Log.Debug("User {UserId} liked the blog {BlogId}", userId, Id.Value);
+    }
+
+    private BlogAggregate(
+        BlogId id,
+        string title,
+        string content,
+        UserId authorId,
+        CategoryId categoryId,
+        string slug,
+        BlogStatus status,
+        DateTime? publishDate,
+        bool isPublish
+    )
+        : base(id)
+    {
+        Title = title;
+        Content = content;
+        ViewCount = 0;
+        AuthorId = authorId;
+        CategoryId = categoryId;
+        PublishDate = publishDate;
+        Status = status;
+        IsPublished = isPublish;
+        Slug = slug;
+        _tags = new List<BlogTag>();
+        _comments = new List<Comment>();
+        _likes = new List<Like>();
+        AddDomainEvent(new BlogCreatedEvent(id, Title, AuthorId));
+    }
+
+    // EF core require
+#pragma warning disable CS8618, CS8625
+    private BlogAggregate()
+        : base(default)
+    {
+        _tags = new List<BlogTag>();
+        _comments = new List<Comment>();
+        _likes = new List<Like>();
+    }
+#pragma warning restore CS8618, CS8625
 }

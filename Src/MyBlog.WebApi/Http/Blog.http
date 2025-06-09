@@ -37,3 +37,7 @@ GET  {{host}}/api/blogs/78029818-206a-461a-8683-a783921ba470
 
 ### Get blog by slug
 GET  {{host}}/api/blogs/slug/the-rising-impact-of-analytics-in-professional-sports
+
+### Add like
+PATCH  {{host}}/api/blogs/78029818-206a-461a-8683-a783921ba470/like
+Authorization: {{token}}

@@ -15,7 +15,7 @@ public sealed class SoftDeleteInterceptor : SaveChangesInterceptor
             return base.SavingChangesAsync(eventData, result, cancellationToken);
 
         var markDeletedEntries = eventData
-            .Context.ChangeTracker.Entries<Entity<object>>()
+            .Context.ChangeTracker.Entries<Entity<IEntity>>()
             .Where(e => e.State == Microsoft.EntityFrameworkCore.EntityState.Deleted);
         foreach (var entry in markDeletedEntries)
         {

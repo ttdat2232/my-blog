@@ -11,7 +11,6 @@ public class UserConfiguration : IEntityTypeConfiguration<UserAggregate>
     {
         builder.ToTable("users");
 
-        // Configure primary key
         builder.HasKey(x => x.Id);
         builder
             .Property(x => x.Id)
@@ -19,12 +18,7 @@ public class UserConfiguration : IEntityTypeConfiguration<UserAggregate>
             .ValueGeneratedNever()
             .HasConversion(id => id.Value, value => UserId.From(value));
 
-        // Configure properties
-        builder
-            .Property(x => x.UserName)
-            .HasColumnName("user_name")
-            .IsRequired()
-            .HasMaxLength(100);
+        builder.Property(x => x.UserName).HasColumnName("user_name").IsRequired().HasMaxLength(100);
 
         builder
             .Property(x => x.NormalizeUserName)
@@ -52,9 +46,6 @@ public class UserConfiguration : IEntityTypeConfiguration<UserAggregate>
 
         builder.Property(e => e.IsDeleted).HasColumnName("is_deleted");
 
-        builder.Ignore(e => e.Roles);
-
-        // Configure many-to-many relationship with roles using join entity
         builder
             .HasMany<RoleAggregate>()
             .WithMany()
@@ -67,7 +58,7 @@ public class UserConfiguration : IEntityTypeConfiguration<UserAggregate>
                         .OnDelete(DeleteBehavior.Cascade),
                 left =>
                     left.HasOne<UserAggregate>()
-                        .WithMany("_roles")
+                        .WithMany(x => x.Roles)
                         .HasForeignKey(e => e.UserId)
                         .OnDelete(DeleteBehavior.Cascade),
                 join =>
@@ -92,7 +83,6 @@ public class UserConfiguration : IEntityTypeConfiguration<UserAggregate>
                     join.Ignore(e => e.IsDeleted);
                 }
             );
-
         builder
             .HasIndex(x => x.NormalizeUserName)
             .HasDatabaseName("ix_users_normalize_user_name")
@@ -104,14 +94,15 @@ public class UserConfiguration : IEntityTypeConfiguration<UserAggregate>
             .IsUnique();
 
         builder
-            .Metadata.FindNavigation(nameof(UserAggregate.Roles))
-            ?.SetPropertyAccessMode(PropertyAccessMode.Field);
+            .Metadata.FindNavigation(nameof(UserAggregate.Roles))!
+            .SetPropertyAccessMode(PropertyAccessMode.Field);
 
         builder
-            .Metadata.FindNavigation(nameof(UserAggregate.Follows))
-            ?.SetPropertyAccessMode(PropertyAccessMode.Field);
+            .Metadata.FindNavigation(nameof(UserAggregate.Follows))!
+            .SetPropertyAccessMode(PropertyAccessMode.Field);
+
         builder
-            .Metadata.FindNavigation(nameof(UserAggregate.FollowedBy))
-            ?.SetPropertyAccessMode(PropertyAccessMode.Field);
+            .Metadata.FindNavigation(nameof(UserAggregate.FollowedBy))!
+            .SetPropertyAccessMode(PropertyAccessMode.Field);
     }
 }
