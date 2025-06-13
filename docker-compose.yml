@@ -30,6 +30,16 @@ services:
     container_name: my-blog-auth
     networks:
       - myblog-network
+  my-blog-websocket:
+    build: 
+      context: .
+      dockerfile: ./Dockerfiles/WebSocket.Dockerfile
+    container_name: my-blog-websocket
+    ports:
+      - "5000:82"
+      - "5003:445"
+    networks:
+      - myblog-network
 
   my-blog-background-services:
     build:
