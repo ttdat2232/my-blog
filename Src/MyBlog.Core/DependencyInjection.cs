@@ -1,5 +1,3 @@
-using System.Reflection;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MyBlog.Core.Services.Blogs;
 using Serilog;
