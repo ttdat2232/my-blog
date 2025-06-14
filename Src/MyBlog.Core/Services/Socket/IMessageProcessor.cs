@@ -7,6 +7,7 @@ public interface IMessageProcessor
     Task<Result<bool>> ProcessMessageAsync(
         string connectionId,
         object rawMessage,
-        WebSocketMessageType type
+        WebSocketMessageType type,
+        CancellationToken cancellationToken = default
     );
 }

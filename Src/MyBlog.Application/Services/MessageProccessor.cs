@@ -8,7 +8,8 @@ public class MessageProccessor(IWebSocketManager _manager) : IMessageProcessor
     async Task<Result<bool>> IMessageProcessor.ProcessMessageAsync(
         string connectionId,
         object rawMessage,
-        WebSocketMessageType type
+        WebSocketMessageType type,
+        CancellationToken cancellationToken = default
     )
     {
         try
@@ -18,10 +19,10 @@ public class MessageProccessor(IWebSocketManager _manager) : IMessageProcessor
             switch (type)
             {
                 case WebSocketMessageType.Boarcast:
-                    await _manager.SendMessageToAllAsync(message);
+                    await _manager.SendMessageToAllAsync(message, cancellationToken);
                     break;
                 case WebSocketMessageType.Private:
-                    await _manager.SendMessageAsync(connectionId, message);
+                    await _manager.SendMessageAsync(connectionId, message, cancellationToken);
                     break;
             }
             return Result<bool>.Success(true);

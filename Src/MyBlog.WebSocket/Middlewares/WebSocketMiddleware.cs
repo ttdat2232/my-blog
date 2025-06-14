@@ -25,7 +25,14 @@ public class WebSocketMiddleware
             var connectionId = Guid.NewGuid().ToString();
             await _connectionManager.AddConnectionAsync(connectionId, webSocket, userId);
             await _webSocketHandler.OnConnectedAsync(connectionId, userId);
-            await _webSocketHandler.HandleAsync(webSocket, connectionId);
+            try
+            {
+                await _webSocketHandler.HandleAsync(webSocket, connectionId);
+            }
+            finally
+            {
+                await _webSocketHandler.OnDisconnectedAsync(connectionId);
+            }
         }
         else
         {

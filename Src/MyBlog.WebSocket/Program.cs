@@ -5,14 +5,13 @@ using MyBlog.Jwt;
 using MyBlog.Postgres;
 using MyBlog.RabbitMq;
 using MyBlog.Redis;
+using MyBlog.WebSocket.BackgroundServices;
 using MyBlog.WebSocket.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// builder.Services.AddOpenApi();
 builder.Services.AddMyBlogCore();
 
-// builder.Services.AddMyBlogApplication();
 builder.Services.AddMyBlogWebSocket();
 builder.Services.AddMyBlogJwt(builder.Configuration);
 builder.Services.AddMyBlogRedis(builder.Configuration);
@@ -54,11 +53,19 @@ builder.Services.AddAuthorization(opts =>
     );
 });
 builder.Services.AddControllers();
+builder.Services.AddHostedService<WebSocketConsumer>();
+
 var app = builder.Build();
+
 app.UseMiddleware<StatictistMiddleware>();
+
 app.UseWebSockets();
+
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.UseMiddleware<WebSocketMiddleware>();
+
 app.MapControllers();
+
 app.Run();

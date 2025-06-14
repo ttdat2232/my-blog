@@ -8,7 +8,6 @@ namespace MyBlog.Application.Services;
 
 public class WebSocketManager(ICacheService _cacheService) : IWebSocketManager
 {
-    // private const string ROOM_CONNECTIONS_PREFIX = "ws:room";
     private const string CONNECTION_INFO_PREFIX = "ws:connection";
     private const string USER_CONNECTIONS_PREFIX = "ws:user";
     private const string ALL_CONNECTIONS_KEY = "ws:all_connections";
@@ -24,7 +23,12 @@ public class WebSocketManager(ICacheService _cacheService) : IWebSocketManager
         Dictionary<string, object> Metadata
     );
 
-    public async Task AddConnectionAsync(string connectionId, WebSocket webSocket, UserId userId)
+    public async Task AddConnectionAsync(
+        string connectionId,
+        WebSocket webSocket,
+        UserId userId,
+        CancellationToken cancellationToken = default
+    )
     {
         _localConnections[connectionId] = webSocket;
         var connectionInfo = new WebSocketConnection(
@@ -35,15 +39,16 @@ public class WebSocketManager(ICacheService _cacheService) : IWebSocketManager
             true,
             new()
         );
-
         await _cacheService.SetAsync(
             [CONNECTION_INFO_PREFIX, connectionId],
             connectionInfo,
-            _defaultExpiry
+            _defaultExpiry,
+            cancellationToken
         );
         var userConnections =
             await _cacheService.GetAsync<List<string>>(
-                [USER_CONNECTIONS_PREFIX, userId.Value.ToString()]
+                [USER_CONNECTIONS_PREFIX, userId.Value.ToString()],
+                cancellationToken
             ) ?? new();
         if (!userConnections.Contains(connectionId))
         {
@@ -56,16 +61,29 @@ public class WebSocketManager(ICacheService _cacheService) : IWebSocketManager
         }
     }
 
-    public Task<WebSocket?> GetConnection(string connectionId) =>
-        Task.FromResult(_localConnections[connectionId] ?? default);
+    public Task<WebSocket?> GetConnection(
+        string connectionId,
+        CancellationToken cancellationToken = default
+    ) => Task.FromResult(_localConnections[connectionId] ?? default);
 
-    public async Task<IEnumerable<string>> GetConnectionIds() =>
-        await _cacheService.GetAsync<List<string>>([ALL_CONNECTIONS_KEY]) ?? [];
+    public async Task<IEnumerable<string>> GetConnectionIds(
+        CancellationToken cancellationToken = default
+    ) =>
+        (await _cacheService.GetAsync<List<string>>([ALL_CONNECTIONS_KEY], cancellationToken))
+        ?? [];
 
-    public async Task<IEnumerable<string>> GetConnectionsByUserId(string userId)
+    public async Task<IEnumerable<string>> GetConnectionsByUserId(
+        string userId,
+        CancellationToken cancellationToken = default
+    )
     {
         var userConnections =
-            await _cacheService.GetAsync<List<string>>([USER_CONNECTIONS_PREFIX, userId]) ?? [];
+            (
+                await _cacheService.GetAsync<List<string>>(
+                    [USER_CONNECTIONS_PREFIX, userId],
+                    cancellationToken
+                )
+            ) ?? [];
 
         return userConnections.Where(IsConnected);
     }
@@ -74,21 +92,24 @@ public class WebSocketManager(ICacheService _cacheService) : IWebSocketManager
     {
         if (!_localConnections.TryGetValue(connectionId, out var socket))
             return false;
-        return socket.State == WebSocketState.Closed || socket.State == WebSocketState.Aborted;
+        return socket.State == WebSocketState.Open;
     }
 
-    public async Task RemoveConnectionAsync(string connectionId)
+    public async Task RemoveConnectionAsync(
+        string connectionId,
+        CancellationToken cancellationToken = default
+    )
     {
-        if (_localConnections.TryRemove(connectionId, out var webSocket))
+        if (
+            _localConnections.TryRemove(connectionId, out var webSocket)
+            && webSocket.State == WebSocketState.Open
+        )
         {
-            if (webSocket.State == WebSocketState.Open)
-            {
-                await webSocket.CloseAsync(
-                    WebSocketCloseStatus.NormalClosure,
-                    "Connection closed",
-                    CancellationToken.None
-                );
-            }
+            await webSocket.CloseAsync(
+                WebSocketCloseStatus.NormalClosure,
+                "Connection closed",
+                cancellationToken
+            );
         }
         var connectionInfo = await _cacheService.GetAsync<WebSocketConnection>(
             [CONNECTION_INFO_PREFIX, connectionId]
@@ -135,9 +156,13 @@ public class WebSocketManager(ICacheService _cacheService) : IWebSocketManager
         Serilog.Log.Information("Connection {ConnectionId} removed", connectionId);
     }
 
-    public async Task SendMessageAsync(string connectionId, string message)
+    public async Task SendMessageAsync(
+        string connectionId,
+        string message,
+        CancellationToken cancellationToken = default
+    )
     {
-        var webSocket = await GetConnection(connectionId);
+        var webSocket = await GetConnection(connectionId, cancellationToken);
         if (webSocket == null)
             return;
 
@@ -148,19 +173,28 @@ public class WebSocketManager(ICacheService _cacheService) : IWebSocketManager
                 new ArraySegment<byte>(buffer),
                 System.Net.WebSockets.WebSocketMessageType.Text,
                 true,
-                CancellationToken.None
+                cancellationToken
             );
         }
     }
 
-    public async Task SendMessageToUserAsync(string userId, string message)
+    public async Task SendMessageToUserAsync(
+        string userId,
+        string message,
+        CancellationToken cancellationToken = default
+    )
     {
-        var connections = await GetConnectionsByUserId(userId);
-        var tasks = connections.Select(connectionId => SendMessageAsync(connectionId, message));
+        var connections = (await GetConnectionsByUserId(userId, cancellationToken)).ToList();
+        var tasks = connections.Select(connectionId =>
+            SendMessageAsync(connectionId, message, cancellationToken)
+        );
         await Task.WhenAll(tasks);
     }
 
-    public async Task SendMessageToAllAsync(string message)
+    public async Task SendMessageToAllAsync(
+        string message,
+        CancellationToken cancellationToken = default
+    )
     {
         var tasks = _localConnections
             .Values.Where(ws => ws.State == WebSocketState.Open)
@@ -171,7 +205,7 @@ public class WebSocketManager(ICacheService _cacheService) : IWebSocketManager
                     new ArraySegment<byte>(buffer),
                     System.Net.WebSockets.WebSocketMessageType.Text,
                     true,
-                    CancellationToken.None
+                    cancellationToken
                 );
             });
 
