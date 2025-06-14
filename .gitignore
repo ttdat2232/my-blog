@@ -489,3 +489,27 @@ $RECYCLE.BIN/
 #Templates
 **/Templates/[Ii]ndex.html
 **/Templates/[Cc]allback.html
+
+# Compiled output
+**/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node
+**/node_modules
+npm-debug.log
+yarn-error.log
+
+# Miscellaneous
+**/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+
+# System files
+.DS_Store
+Thumbs.db
