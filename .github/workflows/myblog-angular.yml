@@ -14,6 +14,10 @@ jobs:
   angular:
     name: Angular Build
     runs-on: [self-hosted, Windows, X64]
+    defaults:
+      run:
+        working-directory: ./Src/MyBlog.Web
+
     strategy:
       matrix:
         node-version: [22.12.0]
