@@ -3,8 +3,12 @@ name: MyBlog .NET Core
 on:
   push:
     branches: ["main"]
+    paths-ignore:
+      - "myblog.web/**"
   pull_request:
     branches: ["main"]
+    paths-ignore:
+      - "MyBlog.Web/**"
 
 jobs:
   build:
