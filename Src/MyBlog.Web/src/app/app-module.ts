@@ -5,7 +5,8 @@ import {
 } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
-import { AuthConfig, OAuthService } from 'angular-oauth2-oidc';
+import { provideHttpClient } from '@angular/common/http';
+import { AuthConfig, OAuthModule, OAuthService } from 'angular-oauth2-oidc';
 import { App } from './app';
 import { AppRoutingModule } from './app-routing-module';
 import { CoreModule } from './core/core-module';
@@ -13,8 +14,13 @@ import { Login } from './features/login/login';
 
 @NgModule({
     declarations: [App, Login],
-    imports: [BrowserModule, AppRoutingModule, CoreModule],
-    providers: [provideBrowserGlobalErrorListeners()],
+    imports: [
+        BrowserModule,
+        AppRoutingModule,
+        CoreModule,
+        OAuthModule.forRoot(),
+    ],
+    providers: [provideBrowserGlobalErrorListeners(), provideHttpClient()],
     bootstrap: [App],
 })
 export class AppModule implements OnInit {
@@ -28,7 +34,7 @@ export class AppModule implements OnInit {
     };
     constructor(private readonly oauthService: OAuthService) {}
     ngOnInit(): void {
-        this.oauthService.configure(this.authConfig);
-        this.oauthService.loadDiscoveryDocumentAndTryLogin();
+        // this.oauthService.configure(this.authConfig);
+        // this.oauthService.loadDiscoveryDocumentAndTryLogin();
     }
 }
